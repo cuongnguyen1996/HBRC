@@ -11,12 +11,19 @@ import { MainWindow } from './windows';
 import { registerIPCs } from './ipcs';
 import { Queue } from '@shared/queue/base';
 import { FileQueue } from '@shared/queue/fileQueue';
-import { Transporter, DummyTransporter, MqttTransporter, MqttTransporterOptions } from './modules/transporters';
+import {
+  Transporter,
+  DummyTransporter,
+  MqttTransporter,
+  MqttTransporterOptions,
+  HttpTransporterOptions,
+  HttpTransporter,
+} from './modules/transporters';
 
 export type ApplicationOptions = {
   transporter?: {
-    protocol: 'mqtt';
-    options?: MqttTransporterOptions;
+    http?: HttpTransporterOptions;
+    mqtt?: MqttTransporterOptions;
   };
 };
 
@@ -44,17 +51,26 @@ export class Application {
     this.transporter = new DummyTransporter();
   }
 
-  async setOptions(options: ApplicationOptions) {
+  async setOptions(options: ApplicationOptions, save = true) {
     this.options = { ...this.options, ...options };
-    await this.connectTranporter(options.transporter);
+    await this.initTranporter(options.transporter);
+    if (save) {
+      await this.clientKvStorage.setItem('applicationOptions', this.options);
+    }
   }
 
-  async connectTranporter(transporter: ApplicationOptions['transporter']) {
+  async initTranporter(transporter: ApplicationOptions['transporter']) {
     if (!transporter) {
       return;
     }
-    if (transporter.protocol === 'mqtt') {
-      this.transporter = new MqttTransporter(transporter.options);
+    if (transporter.mqtt) {
+      this.transporter = new MqttTransporter(transporter.mqtt);
+      this.transporter.connect();
+      this.transporter.onReceive(async (data: any) => {
+        await this.ttcMessagesQueue.push(data);
+      });
+    } else if (transporter.http) {
+      this.transporter = new HttpTransporter(transporter.http);
       this.transporter.connect();
       this.transporter.onReceive(async (data: any) => {
         await this.ttcMessagesQueue.push(data);
@@ -62,19 +78,31 @@ export class Application {
     }
   }
 
-  async init() {
-    await this.puppeteerElectron.beforeAppReady();
-    await this.initElectronApp();
-    await this.puppeteerElectron.afterAppReady();
-    await this.instanceManager.init();
-    this._isReady = true;
-    this.events.onClientReady.emit();
-    await this.cttMessagesQueue.start();
+  private async initOptions() {
+    const ops = await this.clientKvStorage.getItem('applicationOptions');
+    if (ops) {
+      await this.setOptions(ops, false);
+    }
+  }
+
+  private async initMessageQueues() {
     this.cttMessagesQueue.onMessage(async (data) => {
       if (this.transporter) {
         await this.transporter.send(data);
       }
     });
+    await this.cttMessagesQueue.start();
+  }
+
+  async init() {
+    await this.puppeteerElectron.beforeAppReady();
+    await this.initElectronApp();
+    await this.puppeteerElectron.afterAppReady();
+    await this.instanceManager.init();
+    await this.initOptions();
+    await this.initMessageQueues();
+    this._isReady = true;
+    this.events.onClientReady.emit();
     // setInterval(() => {
     //   this.cttMessagesQueue.push({ message: new Date().toISOString() });
     // }, 3000);
