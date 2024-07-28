@@ -1,3 +1,6 @@
+import { BrowserInstance } from '@shared/types';
+import { Queue } from '@shared/queue';
+
 export interface BrowserInstanceController {
   browserEval(code: string): Promise<any>;
   init(): Promise<void>;
@@ -7,7 +10,7 @@ export interface BrowserInstanceController {
 }
 
 export abstract class BaseBrowserInstanceController implements BrowserInstanceController {
-  constructor(protected readonly instance: any) {}
+  constructor(protected readonly instance: BrowserInstance, protected readonly messagesQueue: Queue) {}
   executeInstructions(instructions: any): Promise<any> {
     throw new Error('Method not implemented.');
   }
@@ -19,14 +22,13 @@ export abstract class BaseBrowserInstanceController implements BrowserInstanceCo
     throw new Error('Method not implemented.');
   }
 
-  postMessage(data: any): Promise<void> {
+  async postMessage(data: any) {
     const payload = {
       sessionId: this.instance.sessionId,
       url: this.instance.url,
       data,
     };
-    console.log('postMessage', payload);
-    return;
+    await this.messagesQueue.push(payload);
   }
 
   init(): Promise<void> {

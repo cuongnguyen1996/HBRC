@@ -1,3 +1,4 @@
+import path from 'path';
 import { KVStorage } from '@shared/storages/kvStorage';
 import { ClientKvStorage, ElectronKvStorage } from './modules/storages/kvStorage';
 import { ClientEvents } from './modules/events';
@@ -8,6 +9,8 @@ import { PuppeteerElectron } from './pie';
 import { makeAppSetup } from './factories';
 import { MainWindow } from './windows';
 import { registerIPCs } from './ipcs';
+import { Queue } from '@shared/queue/base';
+import { FileQueue } from '@shared/queue/fileQueue';
 
 export type ApplicationOptions = {
   controllerMqtt?: {
@@ -24,12 +27,15 @@ export class Application {
   private instanceManager: BrowserInstanceManager;
   private puppeteerElectron: PuppeteerElectron;
   private _isReady = false;
+  private messagesQueue: Queue;
   constructor(private readonly eApp: ElectronApp, private options: ApplicationOptions) {
     this.kvStorage = new ElectronKvStorage();
     this.clientKvStorage = new ClientKvStorage(this.kvStorage);
     this.events = new ClientEvents();
     this.puppeteerElectron = new PuppeteerElectron(this.eApp);
-    this.instanceManager = new BrowserInstanceManager(this.puppeteerElectron);
+    const queuePath = path.join(eApp.getAppPath(), 'out', 'data', 'queue');
+    this.messagesQueue = new FileQueue(queuePath);
+    this.instanceManager = new BrowserInstanceManager(this.puppeteerElectron, this.messagesQueue);
   }
 
   async setOptions(options: ApplicationOptions) {
@@ -43,6 +49,10 @@ export class Application {
     await this.instanceManager.init();
     this._isReady = true;
     this.events.onClientReady.emit();
+    await this.messagesQueue.start();
+    this.messagesQueue.onMessage(async (data) => {
+      console.log('received message', data);
+    });
   }
 
   async initElectronApp() {

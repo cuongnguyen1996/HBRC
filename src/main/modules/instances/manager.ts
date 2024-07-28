@@ -5,11 +5,12 @@ import { PuppeteerElectron } from '@main/pie';
 import { PuppeteerInstanceController, BrowserInstanceController } from './controllers';
 import { Page } from 'puppeteer-core';
 import { BrowserInstance } from '@shared/types';
+import { Queue } from '@shared/queue';
 
 class BrowserInstanceManager {
   private db: FSDB;
   private channelControlllerMap = new Map<string, BrowserInstanceController>();
-  constructor(private readonly pie: PuppeteerElectron) {}
+  constructor(private readonly pie: PuppeteerElectron, private readonly messagesQueue: Queue) {}
 
   async init() {
     const appPath = app.getAppPath();
@@ -67,7 +68,7 @@ class BrowserInstanceManager {
   }
 
   private async createInstanceController(bi: BrowserInstance, page: Page) {
-    const controller = new PuppeteerInstanceController(page, bi);
+    const controller = new PuppeteerInstanceController(bi, this.messagesQueue, page);
     this.channelControlllerMap.set(bi.sessionId, controller);
     await controller.init();
     return controller;

@@ -961,6 +961,11 @@ async-retry@^1.3.3:
   dependencies:
     retry "0.13.1"
 
+async@*:
+  version "3.2.5"
+  resolved "https://registry.yarnpkg.com/async/-/async-3.2.5.tgz#ebd52a8fdaf7a2289a24df399f8d8485c8a46b66"
+  integrity sha512-baNZyqaaLhyLVKm/DlvdW051MSgO6b8eVfIezl9E5PqWxFgzLm/wQntEW4zOytVburDEr0JlALEpdOFwvErLsg==
+
 asynckit@^0.4.0:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
@@ -1565,6 +1570,13 @@ fd-slicer@~1.1.0:
   integrity sha512-cE1qsB/VwyQozZ+q1dGxR8LBYNZeofhEdUNGSMbQD3Gw2lAzX9Zb3uIU6Ebc/Fmyjo9AWWfnn0AUCHqtevs/8g==
   dependencies:
     pend "~1.2.0"
+
+file-queue@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/file-queue/-/file-queue-0.3.0.tgz#1bf4d50f851a70f63424047ef451b790f5188ae4"
+  integrity sha512-fPnsz175YJ6slQA6CajdRnGIQyYOoq8BugM8WLRvG/ZDR8+QMOF1z39vtvWEngUo6esaA3Vo87IUFIBQK+qVTg==
+  dependencies:
+    async "*"
 
 file-system-db@^2.1.0:
   version "2.1.0"

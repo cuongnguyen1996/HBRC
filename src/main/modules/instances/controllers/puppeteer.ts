@@ -1,10 +1,11 @@
 import { BaseBrowserInstanceController } from './base';
 import { Page } from 'puppeteer-core';
 import { BrowserInstance, BrowserInstanceInstruction } from '@shared/types';
+import { Queue } from '@shared/queue';
 
 export class PuppeteerInstanceController extends BaseBrowserInstanceController {
-  constructor(protected readonly page: Page, protected readonly instance: BrowserInstance) {
-    super(instance);
+  constructor(instance: BrowserInstance, messagesQueue: Queue, protected readonly page: Page) {
+    super(instance, messagesQueue);
   }
 
   async init(): Promise<void> {
