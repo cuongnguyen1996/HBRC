@@ -22,6 +22,7 @@ import {
 import { TransportMessage } from 'shared/types/message';
 
 export type ApplicationOptions = {
+  serverName: string;
   transporter?: {
     http?: HttpTransporterOptions;
     mqtt?: MqttTransporterOptions;
@@ -50,6 +51,12 @@ export class Application {
       ctt: this.cttMessagesQueue,
     });
     this.transporter = new DummyTransporter();
+  }
+
+  async getAppInfo() {
+    return {
+      options: this.options,
+    };
   }
 
   async setOptions(options: ApplicationOptions, save = true) {

@@ -9,6 +9,7 @@ declare global {
     };
     applicationAPI: {
       setApplicationOptions: (options: any) => Promise<any>;
+      getApplicationInfo: () => Promise<any>;
     };
   }
 }

@@ -6,6 +6,7 @@ import {
   SHOW_INSTANCE_WINDOW,
   SET_APPLICATION_OPTIONS,
   CALL_INSTANCE_FUNCTION,
+  GET_APPLICATION_INFO,
 } from '@shared/constants/ipcs';
 import { Application } from '../app';
 
@@ -36,5 +37,9 @@ export const registerIPCs = (app: Application) => {
   ipcMain.handle(SET_APPLICATION_OPTIONS, async (...args) => {
     const [_, options] = args;
     await app.setOptions(options);
+  });
+
+  ipcMain.handle(GET_APPLICATION_INFO, async (...args) => {
+    return await app.getAppInfo();
   });
 };
