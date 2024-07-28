@@ -83,7 +83,7 @@ export class PuppeteerElectron {
     }
     await window.loadURL(url);
     await window.webContents.executeJavaScript(`window.hbrcWindowId = '${identifier}'`);
-    if (ENVIRONMENT.IS_LOCAL) {
+    if (ENVIRONMENT.IS_DEBUG) {
       window.webContents.openDevTools({ mode: 'undocked' });
     }
     const page = await this.getPage(identifier);

@@ -1,15 +1,18 @@
 export interface BrowserInstanceController {
-  eval(code: string): Promise<any>;
   browserEval(code: string): Promise<any>;
   init(): Promise<void>;
   postMessage(data: any): Promise<void>;
+  executeInstructions(instructions: any): Promise<any>;
+  executeInstruction(instruction: any): Promise<any>;
 }
 
 export abstract class BaseBrowserInstanceController implements BrowserInstanceController {
   constructor(protected readonly instance: any) {}
-
-  eval(code: string): Promise<any> {
-    return eval(code);
+  executeInstructions(instructions: any): Promise<any> {
+    throw new Error('Method not implemented.');
+  }
+  executeInstruction(instruction: any): Promise<any> {
+    throw new Error('Method not implemented.');
   }
 
   browserEval(code: string): Promise<any> {
