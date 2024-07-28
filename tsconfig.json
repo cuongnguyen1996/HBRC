@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "jsx": "react",
+    "module": "ESNext",
+    "strict": false,
+    "lib": ["esnext", "dom", "dom.iterable"],
+    "importHelpers": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "isolatedModules": true,
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "*": ["./src/*"],
+      "@shared/*": ["./src/shared/*"],
+      "@renderer/*": ["./src/renderer/*"],
+      "@main/*": ["./src/main/*"],
+      "@preload/*": ["./src/preload/*"],
+      "@resources/*": ["./src/resources/*"],
+      "~/*": ["./*"]
+    }
+  },
+  "include": ["src", "electron.vite.config.*", "index.d.ts", "@types/*"],
+  "exclude": ["node_modules"]
+}

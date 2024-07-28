@@ -1,0 +1,8 @@
+// InstanceManager
+export const GET_INSTANCES = 'GET_INSTANCES';
+export const ADD_INSTANCE = 'ADD_INSTANCE';
+export const DELETE_INSTANCE = 'DELETE_INSTANCE';
+export const SHOW_INSTANCE_WINDOW = 'SHOW_INSTANCE_WINDOW';
+
+// Application
+export const SET_APPLICATION_OPTIONS = 'SET_APPLICATION_OPTIONS';
