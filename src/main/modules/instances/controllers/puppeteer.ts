@@ -4,8 +4,15 @@ import { BrowserInstance, BrowserInstanceInstruction } from '@shared/types';
 import { Queue } from '@shared/queue';
 
 export class PuppeteerInstanceController extends BaseBrowserInstanceController {
-  constructor(instance: BrowserInstance, messagesQueue: Queue, protected readonly page: Page) {
-    super(instance, messagesQueue);
+  constructor(
+    instance: BrowserInstance,
+    messageQueues: {
+      ttc: Queue;
+      ctt: Queue;
+    },
+    protected readonly page: Page
+  ) {
+    super(instance, messageQueues);
   }
 
   async init(): Promise<void> {

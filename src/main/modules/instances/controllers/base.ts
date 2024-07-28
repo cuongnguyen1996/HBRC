@@ -10,7 +10,13 @@ export interface BrowserInstanceController {
 }
 
 export abstract class BaseBrowserInstanceController implements BrowserInstanceController {
-  constructor(protected readonly instance: BrowserInstance, protected readonly messagesQueue: Queue) {}
+  constructor(
+    protected readonly instance: BrowserInstance,
+    protected readonly messageQueues: {
+      ttc: Queue;
+      ctt: Queue;
+    }
+  ) {}
   executeInstructions(instructions: any): Promise<any> {
     throw new Error('Method not implemented.');
   }
@@ -28,7 +34,7 @@ export abstract class BaseBrowserInstanceController implements BrowserInstanceCo
       url: this.instance.url,
       data,
     };
-    await this.messagesQueue.push(payload);
+    await this.messageQueues.ctt.push(payload);
   }
 
   init(): Promise<void> {

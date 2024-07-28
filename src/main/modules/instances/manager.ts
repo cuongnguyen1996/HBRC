@@ -10,13 +10,25 @@ import { Queue } from '@shared/queue';
 class BrowserInstanceManager {
   private db: FSDB;
   private channelControlllerMap = new Map<string, BrowserInstanceController>();
-  constructor(private readonly pie: PuppeteerElectron, private readonly messagesQueue: Queue) {}
+  constructor(
+    private readonly pie: PuppeteerElectron,
+    private readonly messageQueues: {
+      ttc: Queue;
+      ctt: Queue;
+    }
+  ) {}
 
   async init() {
+    this.messageQueues.ttc.onMessage(this.processControlMessage.bind(this));
+    await this.messageQueues.ttc.start();
     const appPath = app.getAppPath();
     const dbPath = join(appPath, 'out', 'data', 'instances.json');
     this.db = new FSDB(dbPath, true);
     this.loadInstanceWindowPages();
+  }
+
+  private async processControlMessage(data: any) {
+    console.log('processControlMessage', data);
   }
 
   async getInstances() {
@@ -68,7 +80,7 @@ class BrowserInstanceManager {
   }
 
   private async createInstanceController(bi: BrowserInstance, page: Page) {
-    const controller = new PuppeteerInstanceController(bi, this.messagesQueue, page);
+    const controller = new PuppeteerInstanceController(bi, this.messageQueues, page);
     this.channelControlllerMap.set(bi.sessionId, controller);
     await controller.init();
     return controller;
