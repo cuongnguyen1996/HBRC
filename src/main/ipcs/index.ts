@@ -5,6 +5,7 @@ import {
   DELETE_INSTANCE,
   SHOW_INSTANCE_WINDOW,
   SET_APPLICATION_OPTIONS,
+  CALL_INSTANCE_FUNCTION,
 } from '@shared/constants/ipcs';
 import { Application } from '../app';
 
@@ -25,6 +26,10 @@ export const registerIPCs = (app: Application) => {
   ipcMain.handle(SHOW_INSTANCE_WINDOW, async (...args) => {
     const [_, sessionId] = args;
     return await app.getInstanceManager().showInstanceWindow(sessionId);
+  });
+  ipcMain.handle(CALL_INSTANCE_FUNCTION, async (...args) => {
+    const [_, sessionId, method, ...fArgs] = args;
+    return await app.getInstanceManager().callInstanceFunction(sessionId, method, ...fArgs);
   });
 
   // Application

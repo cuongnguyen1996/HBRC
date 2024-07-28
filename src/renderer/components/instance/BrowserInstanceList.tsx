@@ -18,7 +18,7 @@ function renderInstances(instances: any[]) {
     <Row gutter={[16, 16]}>
       {instances.map((instance) => {
         return (
-          <Col key={instance.id} span={10}>
+          <Col key={instance.sessionId} span={10}>
             <BrowserInstanceComponent instance={instance} />
           </Col>
         );

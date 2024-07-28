@@ -27,12 +27,13 @@ class BrowserInstanceManager {
   }
 
   async addInstance(name: string, url: string) {
-    const { sessionId, window, page } = await this.openAddChannelWindownPage(url);
+    const { sessionId, page } = await this.openAddChannelWindownPage(url);
     const bi: BrowserInstance = {
       name,
       sessionId,
       url,
     };
+    await this.createInstanceController(bi, page);
     this.saveInstance(bi);
   }
 
@@ -61,13 +62,14 @@ class BrowserInstanceManager {
       show: false,
       hideOnClose: true,
     });
-    const controller = this.createInstanceController(bi, page);
-    this.channelControlllerMap.set(bi.sessionId, controller);
+    await this.createInstanceController(bi, page);
     console.log('loadInstanceWindowPage', bi);
   }
 
-  private createInstanceController(bi: BrowserInstance, page: Page) {
+  private async createInstanceController(bi: BrowserInstance, page: Page) {
     const controller = new PuppeteerInstanceController(page, bi);
+    this.channelControlllerMap.set(bi.sessionId, controller);
+    await controller.init();
     return controller;
   }
 
@@ -84,6 +86,15 @@ class BrowserInstanceManager {
 
   getController(sessionId: string) {
     return this.channelControlllerMap.get(sessionId);
+  }
+
+  async callInstanceFunction(sessionId: string, method: string, ...args: any[]) {
+    const controller = this.getController(sessionId);
+    if (!controller) {
+      throw new Error(`Controller not found for session: ${sessionId}`);
+    }
+    const func = controller[method].bind(controller);
+    return await func(...args);
   }
 }
 
