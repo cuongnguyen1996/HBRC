@@ -73,18 +73,16 @@ export class Application {
     }
     if (transporter.mqtt) {
       this.transporter = new MqttTransporter(transporter.mqtt);
-      this.transporter.connect();
-      this.transporter.onReceive(async (data: TransportMessage) => {
-        await this.ttcMessagesQueue.push(data);
-      });
     } else if (transporter.http) {
       this.transporter = new HttpTransporter(transporter.http);
-      this.transporter.connect();
+    }
+    if (this.transporter) {
       this.transporter.onReceive(async (data: TransportMessage) => {
         if (data.controlInstance) {
           await this.ttcMessagesQueue.push(data);
         }
       });
+      this.transporter.connect();
     }
   }
 

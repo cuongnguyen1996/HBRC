@@ -30,9 +30,12 @@ export abstract class BaseBrowserInstanceController implements BrowserInstanceCo
 
   async postMessage(data: any) {
     const payload = {
-      sessionId: this.instance.sessionId,
-      url: this.instance.url,
-      data,
+      browserInstance: {
+        sessionId: this.instance.sessionId,
+        url: this.instance.url,
+        command: 'postMessage',
+        payload: data,
+      },
     };
     await this.messageQueues.ctt.push(payload);
   }
