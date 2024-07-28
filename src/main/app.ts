@@ -19,6 +19,7 @@ import {
   HttpTransporterOptions,
   HttpTransporter,
 } from './modules/transporters';
+import { TransportMessage } from 'shared/types/message';
 
 export type ApplicationOptions = {
   transporter?: {
@@ -66,14 +67,16 @@ export class Application {
     if (transporter.mqtt) {
       this.transporter = new MqttTransporter(transporter.mqtt);
       this.transporter.connect();
-      this.transporter.onReceive(async (data: any) => {
+      this.transporter.onReceive(async (data: TransportMessage) => {
         await this.ttcMessagesQueue.push(data);
       });
     } else if (transporter.http) {
       this.transporter = new HttpTransporter(transporter.http);
       this.transporter.connect();
-      this.transporter.onReceive(async (data: any) => {
-        await this.ttcMessagesQueue.push(data);
+      this.transporter.onReceive(async (data: TransportMessage) => {
+        if (data.controlInstance) {
+          await this.ttcMessagesQueue.push(data);
+        }
       });
     }
   }

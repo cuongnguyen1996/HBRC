@@ -1,12 +1,12 @@
-import { BrowserInstance } from '@shared/types';
+import { BrowserInstance, BrowserInstanceInstruction } from '@shared/types';
 import { Queue } from '@shared/queue';
 
 export interface BrowserInstanceController {
   browserEval(code: string): Promise<any>;
   init(): Promise<void>;
   postMessage(data: any): Promise<void>;
-  executeInstructions(instructions: any): Promise<any>;
-  executeInstruction(instruction: any): Promise<any>;
+  executeInstructions(instructions: BrowserInstanceInstruction[]): Promise<any>;
+  executeInstruction(instruction: BrowserInstanceInstruction): Promise<any>;
 }
 
 export abstract class BaseBrowserInstanceController implements BrowserInstanceController {
@@ -17,10 +17,10 @@ export abstract class BaseBrowserInstanceController implements BrowserInstanceCo
       ctt: Queue;
     }
   ) {}
-  executeInstructions(instructions: any): Promise<any> {
+  executeInstructions(instructions: BrowserInstanceInstruction[]): Promise<any> {
     throw new Error('Method not implemented.');
   }
-  executeInstruction(instruction: any): Promise<any> {
+  executeInstruction(instruction: BrowserInstanceInstruction): Promise<any> {
     throw new Error('Method not implemented.');
   }
 

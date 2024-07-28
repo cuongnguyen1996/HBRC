@@ -6,6 +6,7 @@ import { PuppeteerInstanceController, BrowserInstanceController } from './contro
 import { Page } from 'puppeteer-core';
 import { BrowserInstance } from '@shared/types';
 import { Queue } from '@shared/queue';
+import { TransportMessage } from '@shared/types/message';
 
 class BrowserInstanceManager {
   private db: FSDB;
@@ -19,7 +20,7 @@ class BrowserInstanceManager {
   ) {}
 
   async init() {
-    this.messageQueues.ttc.onMessage(this.processControlMessage.bind(this));
+    this.messageQueues.ttc.onMessage(this.processTransportMessage.bind(this));
     await this.messageQueues.ttc.start();
     const appPath = app.getAppPath();
     const dbPath = join(appPath, 'out', 'data', 'instances.json');
@@ -27,8 +28,14 @@ class BrowserInstanceManager {
     this.loadInstanceWindowPages();
   }
 
-  private async processControlMessage(data: any) {
-    console.log('processControlMessage', data);
+  private async processTransportMessage(data: TransportMessage) {
+    if (data.controlInstance) {
+      const { sessionId, instructions } = data.controlInstance;
+      const controller = this.getController(sessionId);
+      if (controller) {
+        await controller.executeInstructions(instructions);
+      }
+    }
   }
 
   async getInstances() {

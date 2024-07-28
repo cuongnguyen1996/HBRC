@@ -1,5 +1,5 @@
 export type BrowserInstanceInstruction = {
-  command: string;
+  command: 'browserEval' | 'page';
   pageCommand?: string;
   args: any[];
 };

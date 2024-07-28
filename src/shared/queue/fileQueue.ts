@@ -25,6 +25,7 @@ export class FileQueue implements Queue {
   }
 
   async start(): Promise<void> {
+    if (this.baseQueue) return;
     this.baseQueue = await new Promise((resolve, reject) => {
       const q = new BaseFileQueue(this.path, (...args: any) => {
         resolve(q);

@@ -38,6 +38,8 @@ export class PuppeteerInstanceController extends BaseBrowserInstanceController {
       return await func.bind(this.page)(...args);
     } else if (command == 'browserEval') {
       return await this[command].bind(this)(...args);
+    } else {
+      throw new Error(`command ${command} invalid`);
     }
   }
 
