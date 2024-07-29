@@ -55,10 +55,21 @@ class BrowserInstanceManager {
     };
     await this.createInstanceController(bi, page);
     this.saveInstance(bi);
+    this.pushMessageToTransporter('addInstance', { browserInstance: bi });
   }
 
   async deleteInstance(sessionId: string) {
     this.db.delete(sessionId);
+    this.pushMessageToTransporter('deleteInstance', { browserInstance: { sessionId } });
+  }
+
+  private pushMessageToTransporter(action: string, payload: any) {
+    this.messageQueues.ctt.push({
+      instanceManager: {
+        action,
+        payload,
+      },
+    });
   }
 
   private async openAddChannelWindownPage(url: string) {
