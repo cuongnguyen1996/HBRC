@@ -21,7 +21,7 @@ export class MqttTransporter extends BaseTransporter {
     console.log('createMqttTransporter', options);
   }
 
-  connect(): void {
+  protected _connect(): void {
     console.log('connect mqtt', this.options);
     const { url, username, password, subscribeTopics, clientId, qos } = this.options;
     const client = mqtt.connect(url, {
@@ -30,6 +30,8 @@ export class MqttTransporter extends BaseTransporter {
       clientId: clientId,
       protocolVersion: 4,
       clean: qos != 0,
+      connectTimeout: 30000,
+      keepalive: 30,
     });
     const subscribeTopicsMap = subscribeTopics.reduce((acc: ISubscriptionMap, topic) => {
       acc[topic] = { qos: qos };
@@ -39,6 +41,7 @@ export class MqttTransporter extends BaseTransporter {
     client.on('connect', () => {
       console.log('mqtt connected', subscribeTopicsMap);
       client.subscribe(subscribeTopicsMap);
+      this.onConnectedCallback && this.onConnectedCallback();
     });
     client.on('message', (topic, message) => {
       console.log('mqtt receive message', message);

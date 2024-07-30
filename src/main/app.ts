@@ -19,7 +19,8 @@ import {
   HttpTransporterOptions,
   HttpTransporter,
 } from './modules/transporters';
-import { TransportMessage } from 'shared/types/message';
+import { OutgoingTransportMessage, IncommingTransportMessage } from '@shared/types/message';
+import { getComputerName } from '@shared/utils/node';
 
 export type ApplicationOptions = {
   serverName: string;
@@ -39,6 +40,7 @@ export class Application {
   private ttcMessagesQueue: Queue; // TransporterToController: this queue pass message from transporter to controller
   private cttMessagesQueue: Queue; // ControllerToTransporter: this queue pass message from controller to transporter
   private transporter: Transporter;
+  private agentName: string;
   constructor(private readonly eApp: ElectronApp, private options: ApplicationOptions) {
     this.kvStorage = new ElectronKvStorage();
     this.clientKvStorage = new ClientKvStorage(this.kvStorage);
@@ -51,6 +53,7 @@ export class Application {
       ctt: this.cttMessagesQueue,
     });
     this.transporter = new DummyTransporter();
+    this.agentName = getComputerName();
   }
 
   async getAppInfo() {
@@ -77,13 +80,27 @@ export class Application {
       this.transporter = new HttpTransporter(transporter.http);
     }
     if (this.transporter) {
-      this.transporter.onReceive(async (data: TransportMessage) => {
+      this.transporter.onReceive(async (data: IncommingTransportMessage) => {
         if (data.controlInstance) {
           await this.ttcMessagesQueue.push(data);
         }
       });
+      this.transporter.onConnected(async () => {
+        await this.pushMessageToTransporter('info', { name: this.agentName });
+        await this.instanceManager.pushListInstanceMessage();
+      });
       this.transporter.connect();
     }
+  }
+
+  async pushMessageToTransporter(action: OutgoingTransportMessage['agent']['action'], payload: any) {
+    const msg: OutgoingTransportMessage = {
+      agent: {
+        action: action,
+        payload: payload,
+      },
+    };
+    this.cttMessagesQueue.push(msg);
   }
 
   private async initOptions() {
@@ -107,8 +124,8 @@ export class Application {
     await this.initElectronApp();
     await this.puppeteerElectron.afterAppReady();
     await this.instanceManager.init();
-    await this.initOptions();
     await this.initMessageQueues();
+    await this.initOptions();
     this._isReady = true;
     this.events.onClientReady.emit();
     // setInterval(() => {

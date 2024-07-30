@@ -32,7 +32,7 @@ export class HttpTransporter extends BaseTransporter {
     });
   }
 
-  connect(): void {
+  protected _connect(): void {
     const { intervalSeconds } = this.options.puller;
     setInterval(async () => {
       try {
@@ -44,6 +44,7 @@ export class HttpTransporter extends BaseTransporter {
         console.log(e.error);
       }
     }, intervalSeconds * 1000);
+    this.onConnectedCallback && this.onConnectedCallback();
   }
 
   async send(data: any) {

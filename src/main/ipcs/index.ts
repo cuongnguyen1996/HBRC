@@ -22,7 +22,7 @@ export const registerIPCs = (app: Application) => {
   });
   ipcMain.handle(DELETE_INSTANCE, async (...args) => {
     const [_, sessionId] = args;
-    return await app.getInstanceManager().deleteInstance(sessionId);
+    return await app.getInstanceManager().removeInstance(sessionId);
   });
   ipcMain.handle(SHOW_INSTANCE_WINDOW, async (...args) => {
     const [_, sessionId] = args;

@@ -6,7 +6,7 @@ import { PuppeteerInstanceController, BrowserInstanceController } from './contro
 import { Page } from 'puppeteer-core';
 import { BrowserInstance } from '@shared/types';
 import { Queue } from '@shared/queue';
-import { TransportMessage } from '@shared/types/message';
+import { IncommingTransportMessage, OutgoingTransportMessage } from '@shared/types/message';
 
 class BrowserInstanceManager {
   private db: FSDB;
@@ -28,7 +28,7 @@ class BrowserInstanceManager {
     this.loadInstanceWindowPages();
   }
 
-  private async processTransportMessage(data: TransportMessage) {
+  private async processTransportMessage(data: IncommingTransportMessage) {
     if (data.controlInstance) {
       const { sessionId, instructions } = data.controlInstance;
       const controller = this.getController(sessionId);
@@ -55,20 +55,27 @@ class BrowserInstanceManager {
     };
     await this.createInstanceController(bi, page);
     this.saveInstance(bi);
-    this.pushMessageToTransporter('addInstance', { browserInstance: bi });
+    this.pushMessageToTransporter('addInstance', { instance: bi });
   }
 
-  async deleteInstance(sessionId: string) {
+  async removeInstance(sessionId: string) {
     this.db.delete(sessionId);
-    this.pushMessageToTransporter('deleteInstance', { browserInstance: { sessionId } });
+    this.pushMessageToTransporter('removeInstance', { instance: { sessionId } });
   }
 
-  private pushMessageToTransporter(action: string, payload: any) {
-    this.messageQueues.ctt.push({
+  private pushMessageToTransporter(action: OutgoingTransportMessage['instanceManager']['action'], payload: any) {
+    const msg: OutgoingTransportMessage = {
       instanceManager: {
         action,
         payload,
       },
+    };
+    this.messageQueues.ctt.push(msg);
+  }
+
+  async pushListInstanceMessage() {
+    this.pushMessageToTransporter('listInstance', {
+      instances: await this.getInstances(),
     });
   }
 

@@ -1,5 +1,6 @@
 import { BrowserInstance, BrowserInstanceInstruction } from '@shared/types';
 import { Queue } from '@shared/queue';
+import { OutgoingTransportMessage } from 'shared/types/message';
 
 export interface BrowserInstanceController {
   browserEval(code: string): Promise<any>;
@@ -29,15 +30,15 @@ export abstract class BaseBrowserInstanceController implements BrowserInstanceCo
   }
 
   async postMessage(data: any) {
-    const payload = {
+    const msg: OutgoingTransportMessage = {
       browserInstance: {
         sessionId: this.instance.sessionId,
         url: this.instance.url,
-        command: 'postMessage',
+        action: 'postMessage',
         payload: data,
       },
     };
-    await this.messageQueues.ctt.push(payload);
+    await this.messageQueues.ctt.push(msg);
   }
 
   init(): Promise<void> {

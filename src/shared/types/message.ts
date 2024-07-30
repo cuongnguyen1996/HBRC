@@ -1,15 +1,24 @@
 import { BrowserInstanceInstruction } from './browserInstance';
 
-export type TransportMessage = {
-  controlInstance: {
+export type IncommingTransportMessage = {
+  controlInstance?: {
     sessionId: string;
     instructions: BrowserInstanceInstruction[];
   };
-  instanceManager: {
-    action: 'listInstance' | 'addInstance' | 'deleteInstance';
+};
+
+export type OutgoingTransportMessage = {
+  browserInstance?: {
+    sessionId: string;
+    url?: string;
+    action: 'postMessage';
     payload: any;
   };
-  agent: {
+  instanceManager?: {
+    action: 'listInstance' | 'addInstance' | 'removeInstance';
+    payload: any;
+  };
+  agent?: {
     action: 'info';
     payload: any;
   };
