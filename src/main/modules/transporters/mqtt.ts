@@ -43,12 +43,7 @@ export class MqttTransporter extends BaseTransporter {
       client.subscribe(subscribeTopicsMap);
       this.onConnectedCallback && this.onConnectedCallback();
     });
-    client.on('message', (topic, message) => {
-      console.log('mqtt receive message', message);
-      if (this.onReceiveCallback) {
-        this.onReceiveCallback(message.toString());
-      }
-    });
+    client.on('message', this.onMessage.bind(this));
     client.on('disconnect', (e) => {
       console.log('mqtt disconnected', e);
     });
@@ -61,5 +56,21 @@ export class MqttTransporter extends BaseTransporter {
     const message = JSON.stringify(data);
     console.log('send message', { message, publishTopic });
     this.mqttClient.publish(publishTopic, message);
+  }
+
+  private onMessage(topic: string, message: Buffer) {
+    const msg = this.parseMessage(message);
+    // console.log('mqtt receive message', msg);
+    if (this.onReceiveCallback && msg) {
+      this.onReceiveCallback(msg);
+    }
+  }
+
+  private parseMessage(message: Buffer) {
+    try {
+      return JSON.parse(message.toString());
+    } catch (e) {
+      return null;
+    }
   }
 }
