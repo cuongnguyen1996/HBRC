@@ -2,6 +2,9 @@ import { BaseBrowserInstanceController } from './base';
 import { Page } from 'puppeteer-core';
 import { BrowserInstance, BrowserInstanceInstruction } from '@shared/types';
 import { Queue } from '@shared/queue';
+import { createLogger } from '@main/logging';
+
+const logger = createLogger('puppeteerInstanceController', 'debug');
 
 export class PuppeteerInstanceController extends BaseBrowserInstanceController {
   constructor(
@@ -30,7 +33,11 @@ export class PuppeteerInstanceController extends BaseBrowserInstanceController {
       try {
         await this.executeInstructions(this.instance.initInstructions);
       } catch (e) {
-        console.error('Error executing init instructions', e);
+        logger.error('Error executing init instructions', {
+          error: e,
+          instructions: this.instance.initInstructions,
+          sessionId: this.instance.sessionId,
+        });
       }
     }
   }

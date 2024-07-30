@@ -7,17 +7,21 @@ import { Page } from 'puppeteer-core';
 import { BrowserInstance } from '@shared/types';
 import { Queue } from '@shared/queue';
 import { IncommingTransportMessage, OutgoingTransportMessage } from '@shared/types/message';
+import { Logger, createLogger } from '@main/logging';
 
 class BrowserInstanceManager {
   private db: FSDB;
   private channelControlllerMap = new Map<string, BrowserInstanceController>();
+  private logger: Logger;
   constructor(
     private readonly pie: PuppeteerElectron,
     private readonly messageQueues: {
       ttc: Queue;
       ctt: Queue;
     }
-  ) {}
+  ) {
+    this.logger = createLogger('browserInstanceManager', 'debug');
+  }
 
   async init() {
     const appPath = app.getAppPath();
@@ -29,7 +33,7 @@ class BrowserInstanceManager {
   }
 
   private async processTransportMessage(data: IncommingTransportMessage) {
-    console.log('processTransportMessage', data);
+    this.logger.debug('processTransportMessage', { data });
     if (data.controlInstance) {
       const { sessionId, instructions } = data.controlInstance;
       const controller = this.getController(sessionId);
@@ -42,7 +46,7 @@ class BrowserInstanceManager {
   }
 
   private async handleManageInstanceMessage(data: IncommingTransportMessage['manageInstance']) {
-    console.log('handleManageInstanceMessage', data);
+    this.logger.debug('handleManageInstanceMessage', { data });
     const { action, payload } = data;
     if (action == 'updateInstance') {
       if (!payload) {
@@ -54,7 +58,7 @@ class BrowserInstanceManager {
       }
       const bi = await this.getInstance(sessionId);
       if (!bi) {
-        console.error(`Instance not found: ${sessionId}`);
+        this.logger.error(`Instance not found: ${sessionId}`);
       } else {
         await this.updateInstance(sessionId, payload);
       }
@@ -124,7 +128,7 @@ class BrowserInstanceManager {
       hideOnClose: true,
     });
     await this.createInstanceController(bi, page);
-    console.log('loadInstanceWindowPage', bi);
+    this.logger.debug('loadInstanceWindowPage', bi);
   }
 
   private async createInstanceController(bi: BrowserInstance, page: Page) {

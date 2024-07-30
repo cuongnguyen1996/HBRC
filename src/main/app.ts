@@ -21,6 +21,7 @@ import {
 } from './modules/transporters';
 import { OutgoingTransportMessage, IncommingTransportMessage } from '@shared/types/message';
 import { getComputerName } from '@shared/utils/node';
+import { Logger, createLogger } from './logging';
 
 export type ApplicationOptions = {
   serverName?: string;
@@ -41,7 +42,9 @@ export class Application {
   private cttMessagesQueue: Queue; // ControllerToTransporter: this queue pass message from controller to transporter
   private transporter: Transporter;
   private agentName: string;
+  private logger: Logger;
   constructor(private readonly eApp: ElectronApp, private options: ApplicationOptions) {
+    this.logger = createLogger('app', 'debug');
     this.kvStorage = new ElectronKvStorage();
     this.clientKvStorage = new ClientKvStorage(this.kvStorage);
     this.events = new ClientEvents();
@@ -64,6 +67,7 @@ export class Application {
 
   async setOptions(options: ApplicationOptions, save = true) {
     this.options = { ...this.options, ...options };
+    this.logger.debug('setOptions', { options });
     await this.initTranporter(options.transporter);
     if (save) {
       await this.clientKvStorage.setItem('applicationOptions', this.options);

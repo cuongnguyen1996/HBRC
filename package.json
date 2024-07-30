@@ -31,7 +31,8 @@
     "react-dom": "^18",
     "react-router-dom": "^6.23.0",
     "rxjs": "^7.8.1",
-    "utf-8-validate": "^6.0.3"
+    "utf-8-validate": "^6.0.3",
+    "winston": "^3.13.1"
   },
   "devDependencies": {
     "@swc/core": "^1.4.17",

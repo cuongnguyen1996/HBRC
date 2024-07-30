@@ -1,5 +1,6 @@
 import mqtt, { ISubscriptionMap, MqttClient } from 'mqtt';
 import { BaseTransporter } from './base';
+import { createLogger, Logger } from '@main/logging';
 
 export type MqttTransporterOptions = {
   url: string;
@@ -13,16 +14,18 @@ export type MqttTransporterOptions = {
 
 export class MqttTransporter extends BaseTransporter {
   private mqttClient?: MqttClient;
+  private logger: Logger;
   constructor(private readonly options: MqttTransporterOptions) {
     super();
+    this.logger = createLogger('mqttTransporter', 'debug');
     if (options.qos === undefined) {
       options.qos = 1;
     }
-    console.log('createMqttTransporter', options);
+    this.logger.debug('createMqttTransporter', { options });
   }
 
   protected _connect(): void {
-    console.log('connect mqtt', this.options);
+    this.logger.debug('connect mqtt', { mqttOptions: this.options });
     const { url, username, password, subscribeTopics, clientId, qos } = this.options;
     const client = mqtt.connect(url, {
       username: username,
@@ -39,13 +42,13 @@ export class MqttTransporter extends BaseTransporter {
     }, {});
     this.mqttClient = client;
     client.on('connect', () => {
-      console.log('mqtt connected', subscribeTopicsMap);
+      this.logger.debug('mqtt connected', { subscribeTopicsMap });
       client.subscribe(subscribeTopicsMap);
       this.onConnectedCallback && this.onConnectedCallback();
     });
     client.on('message', this.onMessage.bind(this));
     client.on('disconnect', (e) => {
-      console.log('mqtt disconnected', e);
+      this.logger.debug('mqtt disconnected', e);
     });
   }
   async send(data: any) {
@@ -54,13 +57,13 @@ export class MqttTransporter extends BaseTransporter {
     }
     const { publishTopic } = this.options;
     const message = JSON.stringify(data);
-    console.log('send message', { message, publishTopic });
+    this.logger.debug('send message', { message, publishTopic });
     this.mqttClient.publish(publishTopic, message);
   }
 
   private onMessage(topic: string, message: Buffer) {
     const msg = this.parseMessage(message);
-    console.log('mqtt receive message', msg);
+    this.logger.debug('mqtt receive message', { topic, message: msg });
     if (this.onReceiveCallback && msg) {
       this.onReceiveCallback(msg);
     }
