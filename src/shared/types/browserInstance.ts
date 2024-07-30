@@ -8,5 +8,6 @@ export type BrowserInstance = {
   sessionId: string;
   name: string;
   url: string;
+  initInstructions?: BrowserInstanceInstruction[];
   [key: string]: any;
 };

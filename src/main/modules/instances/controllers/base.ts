@@ -8,16 +8,22 @@ export interface BrowserInstanceController {
   postMessage(data: any): Promise<void>;
   executeInstructions(instructions: BrowserInstanceInstruction[]): Promise<any>;
   executeInstruction(instruction: BrowserInstanceInstruction): Promise<any>;
+  setInstance(instance: BrowserInstance): Promise<void>;
 }
 
 export abstract class BaseBrowserInstanceController implements BrowserInstanceController {
   constructor(
-    protected readonly instance: BrowserInstance,
+    protected instance: BrowserInstance,
     protected readonly messageQueues: {
       ttc: Queue;
       ctt: Queue;
     }
   ) {}
+
+  async setInstance(instance: BrowserInstance) {
+    this.instance = instance;
+  }
+
   executeInstructions(instructions: BrowserInstanceInstruction[]): Promise<any> {
     throw new Error('Method not implemented.');
   }

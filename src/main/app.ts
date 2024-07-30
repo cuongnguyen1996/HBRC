@@ -23,7 +23,7 @@ import { OutgoingTransportMessage, IncommingTransportMessage } from '@shared/typ
 import { getComputerName } from '@shared/utils/node';
 
 export type ApplicationOptions = {
-  serverName: string;
+  serverName?: string;
   transporter?: {
     http?: HttpTransporterOptions;
     mqtt?: MqttTransporterOptions;
@@ -81,7 +81,7 @@ export class Application {
     }
     if (this.transporter) {
       this.transporter.onReceive(async (data: IncommingTransportMessage) => {
-        if (data.controlInstance) {
+        if (data.controlInstance || data.manageInstance) {
           await this.ttcMessagesQueue.push(data);
         }
       });

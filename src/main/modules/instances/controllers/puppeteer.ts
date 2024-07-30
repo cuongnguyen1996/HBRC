@@ -15,7 +15,28 @@ export class PuppeteerInstanceController extends BaseBrowserInstanceController {
     super(instance, messageQueues);
   }
 
+  async setInstance(instance: BrowserInstance) {
+    this.instance = instance;
+    await this.restart();
+  }
+
+  private async restart() {
+    await this.page.reload();
+    await this.executeInitInstructions();
+  }
+
+  private async executeInitInstructions() {
+    if (this.instance.initInstructions) {
+      try {
+        await this.executeInstructions(this.instance.initInstructions);
+      } catch (e) {
+        console.error('Error executing init instructions', e);
+      }
+    }
+  }
+
   async init(): Promise<void> {
+    await this.executeInitInstructions();
     await this.page.exposeFunction('bicPostMessage', this.postMessage.bind(this));
   }
 

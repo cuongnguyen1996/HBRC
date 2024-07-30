@@ -5,6 +5,11 @@ export type IncommingTransportMessage = {
     sessionId: string;
     instructions: BrowserInstanceInstruction[];
   };
+  manageInstance?: {
+    action: 'updateInstance';
+    instanceSessionId?: string;
+    payload?: any;
+  };
 };
 
 export type OutgoingTransportMessage = {

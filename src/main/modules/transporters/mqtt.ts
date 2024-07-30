@@ -60,7 +60,7 @@ export class MqttTransporter extends BaseTransporter {
 
   private onMessage(topic: string, message: Buffer) {
     const msg = this.parseMessage(message);
-    // console.log('mqtt receive message', msg);
+    console.log('mqtt receive message', msg);
     if (this.onReceiveCallback && msg) {
       this.onReceiveCallback(msg);
     }

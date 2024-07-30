@@ -20,20 +20,43 @@ class BrowserInstanceManager {
   ) {}
 
   async init() {
-    this.messageQueues.ttc.onMessage(this.processTransportMessage.bind(this));
-    await this.messageQueues.ttc.start();
     const appPath = app.getAppPath();
     const dbPath = join(appPath, 'out', 'data', 'instances.json');
     this.db = new FSDB(dbPath, true);
-    this.loadInstanceWindowPages();
+    await this.loadInstanceWindowPages();
+    this.messageQueues.ttc.onMessage(this.processTransportMessage.bind(this));
+    await this.messageQueues.ttc.start();
   }
 
   private async processTransportMessage(data: IncommingTransportMessage) {
+    console.log('processTransportMessage', data);
     if (data.controlInstance) {
       const { sessionId, instructions } = data.controlInstance;
       const controller = this.getController(sessionId);
       if (controller) {
         await controller.executeInstructions(instructions);
+      }
+    } else if (data.manageInstance) {
+      await this.handleManageInstanceMessage(data.manageInstance);
+    }
+  }
+
+  private async handleManageInstanceMessage(data: IncommingTransportMessage['manageInstance']) {
+    console.log('handleManageInstanceMessage', data);
+    const { action, payload } = data;
+    if (action == 'updateInstance') {
+      if (!payload) {
+        return;
+      }
+      const { sessionId } = payload;
+      if (!sessionId) {
+        return;
+      }
+      const bi = await this.getInstance(sessionId);
+      if (!bi) {
+        console.error(`Instance not found: ${sessionId}`);
+      } else {
+        await this.updateInstance(sessionId, payload);
       }
     }
   }
@@ -120,6 +143,19 @@ class BrowserInstanceManager {
 
   private saveInstance(bi: BrowserInstance) {
     this.db.set(bi.sessionId, bi);
+  }
+
+  async updateInstance(sessionId: string, bi: Partial<Pick<BrowserInstance, 'name' | 'initInstructions'>>) {
+    const i = await this.getInstance(sessionId);
+    if (!i) {
+      throw new Error(`Instance not found: ${sessionId}`);
+    }
+    const newInstanceData = { ...i, ...bi };
+    this.saveInstance(newInstanceData);
+    const controller = this.getController(sessionId);
+    if (controller) {
+      await controller.setInstance(newInstanceData);
+    }
   }
 
   getController(sessionId: string) {
