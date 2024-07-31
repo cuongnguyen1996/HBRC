@@ -10,7 +10,7 @@ import { makeAppSetup } from './factories';
 import { MainWindow } from './windows';
 import { registerIPCs } from './ipcs';
 import { Queue } from '@shared/queue/base';
-import { FileQueue } from '@shared/queue/fileQueue';
+import { FileQueue } from '@main/modules/queue';
 import {
   Transporter,
   DummyTransporter,
@@ -49,7 +49,9 @@ export class Application {
     this.clientKvStorage = new ClientKvStorage(this.kvStorage);
     this.events = new ClientEvents();
     this.puppeteerElectron = new PuppeteerElectron(this.eApp);
-    this.ttcMessagesQueue = new FileQueue(path.join(eApp.getAppPath(), 'out', 'data', 'message_queues', 'ttc'));
+    this.ttcMessagesQueue = new FileQueue(path.join(eApp.getAppPath(), 'out', 'data', 'message_queues', 'ttc'), {
+      messageMaxRequeueNumber: 10,
+    });
     this.cttMessagesQueue = new FileQueue(path.join(eApp.getAppPath(), 'out', 'data', 'message_queues', 'ctt'));
     this.instanceManager = new BrowserInstanceManager(this.puppeteerElectron, {
       ttc: this.ttcMessagesQueue,
