@@ -1,6 +1,6 @@
 import { BrowserInstance, BrowserInstanceInstruction } from '@shared/types';
 import { Queue } from '@shared/queue';
-import { OutgoingTransportMessage } from 'shared/types/message';
+import { OutgoingTransportMessage } from '@shared/types/message';
 
 export interface BrowserInstanceController {
   browserEval(code: string): Promise<any>;

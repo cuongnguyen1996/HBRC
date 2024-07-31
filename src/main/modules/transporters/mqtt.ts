@@ -1,6 +1,8 @@
-import mqtt, { ISubscriptionMap, MqttClient } from 'mqtt';
+import { ISubscriptionMap, MqttClient } from 'mqtt';
 import { BaseTransporter } from './base';
 import { createLogger, Logger } from '@main/logging';
+
+const mqtt = require('mqtt');
 
 export type MqttTransporterOptions = {
   url: string;
