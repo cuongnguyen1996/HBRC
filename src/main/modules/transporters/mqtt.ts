@@ -34,7 +34,7 @@ export class MqttTransporter extends BaseTransporter {
       password: password,
       clientId: clientId,
       protocolVersion: 4,
-      clean: qos != 0,
+      clean: qos == 0,
       connectTimeout: 30000,
       keepalive: 30,
     });

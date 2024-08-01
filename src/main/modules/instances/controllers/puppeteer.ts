@@ -43,8 +43,8 @@ export class PuppeteerInstanceController extends BaseBrowserInstanceController {
   }
 
   async init(): Promise<void> {
-    await this.executeInitInstructions();
     await this.page.exposeFunction('bicPostMessage', this.postMessage.bind(this));
+    await this.executeInitInstructions();
   }
 
   async executeInstructions(instructions: BrowserInstanceInstruction[]): Promise<any[]> {
