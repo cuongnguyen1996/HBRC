@@ -30,3 +30,21 @@ export const initMenu = (app: App) => {
   const menu = Menu.buildFromTemplate(menuTemplate);
   Menu.setApplicationMenu(menu);
 };
+
+export const addMenuItem = (menuItem: Electron.MenuItemConstructorOptions) => {
+  const buildFromTemplate = Menu.buildFromTemplate([menuItem]);
+  const currentMenu = Menu.getApplicationMenu();
+  buildFromTemplate.items.forEach((item) => {
+    currentMenu.append(item);
+  });
+  Menu.setApplicationMenu(currentMenu);
+};
+
+export const addMenuItems = (menuItems: Electron.MenuItemConstructorOptions[]) => {
+  const buildFromTemplate = Menu.buildFromTemplate(menuItems);
+  const currentMenu = Menu.getApplicationMenu();
+  buildFromTemplate.items.forEach((item) => {
+    currentMenu.append(item);
+  });
+  Menu.setApplicationMenu(currentMenu);
+};
