@@ -4,6 +4,7 @@ import {
   SET_APPLICATION_OPTIONS,
   ON_MENU_ITEM_CLICKED,
   ON_APPLICATION_READY,
+  ON_SERVER_DISCONNECTED,
 } from '@shared/constants/ipcs';
 import { MenuItemId } from '@shared/constants';
 import { PreloadEventKey, PreloadEventListener } from '@shared/event/preload';
@@ -17,6 +18,10 @@ ipcRenderer.on(ON_MENU_ITEM_CLICKED, (_, menuItemId, data: any) => {
 
 ipcRenderer.on(ON_APPLICATION_READY, () => {
   preloadEvents.emit(PreloadEventKey.APPLICATION_READY);
+});
+
+ipcRenderer.on(ON_SERVER_DISCONNECTED, () => {
+  preloadEvents.emit(PreloadEventKey.SERVER_DISCONNECTED);
 });
 
 contextBridge.exposeInMainWorld('applicationAPI', {

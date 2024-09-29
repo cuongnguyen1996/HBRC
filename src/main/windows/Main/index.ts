@@ -4,8 +4,9 @@ import { createWindow } from '@main/factories';
 import { ENVIRONMENT } from '@shared/constants';
 import { PRELOAD_FILE_PATH } from '@main/config';
 import { initMenuForMainWindow } from '@main/menu';
+import Application from '@main/app';
 
-export async function MainWindow() {
+export async function MainWindow(mainApp: Application) {
   const mainWindow = createWindow({
     id: 'main',
     title: 'Headless Browser Remote Controller',
@@ -30,7 +31,7 @@ export async function MainWindow() {
     }
   });
 
-  initMenuForMainWindow(app, mainWindow);
+  initMenuForMainWindow(app, mainApp, mainWindow);
 
   mainWindow.on('close', () => BrowserWindow.getAllWindows().forEach((window) => window.destroy()));
 

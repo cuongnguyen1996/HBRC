@@ -13,6 +13,7 @@ type AppContextType = {
   application: ApplicationAPI;
   applicationInfo: ApplicationInfo;
   isLoading: boolean;
+  isOnboarded: boolean;
 };
 
 const AppContext = React.createContext<AppContextType>({
@@ -21,24 +22,43 @@ const AppContext = React.createContext<AppContextType>({
   application: null,
   applicationInfo: null,
   isLoading: true,
+  isOnboarded: false,
 });
 
 export default function AppContextProvider({ children }) {
   const [messageApi, messageContextHolder] = message.useMessage();
-  const [isApplicationReady, setIsApplicationReady] = React.useState(false);
+  const [isApplicationReady, setIsApplicationReady] = React.useState(true);
   const application = useApplication();
 
-  const { data: applicationInfo, isFetching: isFetchingAppInfo } = useQuery<ApplicationInfo>({
+  const {
+    data: applicationInfo,
+    isFetching: isFetchingAppInfo,
+    refetch,
+  } = useQuery<ApplicationInfo>({
     queryKey: [QueryKeys.GET_APPLICATION_INFO],
     queryFn: application.getApplicationInfo,
     enabled: isApplicationReady,
   });
+  const [isOnboarded, setIsOnboarded] = React.useState(false);
 
   useEffect(() => {
-    application.subscribeEvent(PreloadEventKey.APPLICATION_READY, () => {
+    const apReadySubId = application.subscribeEvent(PreloadEventKey.APPLICATION_READY, () => {
       setIsApplicationReady(true);
     });
+    const serverDisSubId = application.subscribeEvent(PreloadEventKey.SERVER_DISCONNECTED, () => {
+      refetch();
+    });
+    return () => {
+      application.unsubscribeEvent(apReadySubId);
+      application.unsubscribeEvent(serverDisSubId);
+    };
   }, []);
+
+  useEffect(() => {
+    if (applicationInfo) {
+      setIsOnboarded(!!applicationInfo.options?.serverName);
+    }
+  }, [applicationInfo]);
 
   return (
     <AppContext.Provider
@@ -48,6 +68,7 @@ export default function AppContextProvider({ children }) {
         application,
         applicationInfo,
         isLoading: !isApplicationReady || isFetchingAppInfo,
+        isOnboarded: isOnboarded,
       }}
     >
       {messageContextHolder}

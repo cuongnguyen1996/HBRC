@@ -3,14 +3,14 @@ import { KVStorage } from '@shared/storages/kvStorage';
 import { ClientKvStorage, ElectronKvStorage } from './modules/storages/kvStorage';
 import { ClientEvents } from './modules/events';
 import BrowserInstanceManager from './modules/instances/manager';
-import { App as ElectronApp } from 'electron';
+import { app, BrowserWindow, App as ElectronApp } from 'electron';
 import { PuppeteerElectron } from './pie';
 
 import { makeAppSetup } from './factories';
 import { MainWindow } from './windows';
 import { registerIPCs } from './ipcs';
 import { Queue } from '@shared/queue/base';
-import { ON_APPLICATION_READY } from '@shared/constants/ipcs';
+import { ON_APPLICATION_READY, ON_SERVER_DISCONNECTED } from '@shared/constants/ipcs';
 import { FileQueue } from '@main/modules/queue';
 import {
   Transporter,
@@ -44,6 +44,7 @@ export class Application {
   private transporter: Transporter;
   private agentName: string;
   private logger: Logger;
+  private mainWindow?: BrowserWindow;
   constructor(private readonly eApp: ElectronApp, private options: ApplicationOptions) {
     this.logger = createLogger('app', 'debug');
     this.kvStorage = new ElectronKvStorage();
@@ -140,13 +141,29 @@ export class Application {
     // }, 3000);
   }
 
+  sendMainWindowEvent(event: string, data?: any) {
+    if (this.mainWindow) {
+      this.mainWindow.webContents.send(event, data);
+    }
+  }
+
   async initElectronApp() {
     await this.eApp.whenReady();
     registerIPCs(this);
-    const mainWindow = await makeAppSetup(MainWindow);
-    this.events.onClientReady.listen(() => {
-      mainWindow.webContents.send(ON_APPLICATION_READY);
+    const mainWindow = await makeAppSetup(() => {
+      return MainWindow(this);
     });
+    this.mainWindow = mainWindow;
+    this.events.onClientReady.listen(() => {
+      this.sendMainWindowEvent(ON_APPLICATION_READY);
+    });
+  }
+
+  async disconnectServer() {
+    this.options = {};
+    this.clientKvStorage.delItem('applicationOptions');
+    this.transporter.disconnect();
+    this.sendMainWindowEvent(ON_SERVER_DISCONNECTED);
   }
 
   getInstanceManager() {

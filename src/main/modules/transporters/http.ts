@@ -18,6 +18,7 @@ export type HttpTransporterOptions = {
 export class HttpTransporter extends BaseTransporter {
   private puller: AxiosInstance;
   private pusher: AxiosInstance;
+  private interVal = undefined;
   constructor(private readonly options: HttpTransporterOptions) {
     super();
     this.puller = axios.create({
@@ -32,9 +33,16 @@ export class HttpTransporter extends BaseTransporter {
     });
   }
 
+  protected _disconnect(): void {
+    if (this.interVal) {
+      clearInterval(this.interVal);
+      this.interVal = undefined;
+    }
+  }
+
   protected _connect(): void {
     const { intervalSeconds } = this.options.puller;
-    setInterval(async () => {
+    this.interVal = setInterval(async () => {
       try {
         const res = await this.puller.get('');
         if (this.onReceiveCallback) {

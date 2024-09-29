@@ -2,6 +2,7 @@ import { App, BrowserWindow, Menu } from 'electron';
 import { DebugWindow } from './windows/Debug';
 import { PLATFORM } from '@shared/constants/main';
 import { MenuItemId, ON_MENU_ITEM_CLICKED } from '@shared/constants';
+import Application from './app';
 
 export const initMenu = (app: App) => {
   const macMenu = [
@@ -21,7 +22,7 @@ export const initMenu = (app: App) => {
   Menu.setApplicationMenu(menu);
 };
 
-export const initMenuForMainWindow = (app: App, mainWindow: BrowserWindow) => {
+export const initMenuForMainWindow = (app: App, mainApp: Application, mainWindow: BrowserWindow) => {
   const sendMenuClickedToRenderer = (menuItemId: string, data?: any) => {
     mainWindow.webContents.send(ON_MENU_ITEM_CLICKED, menuItemId, data);
   };
@@ -35,7 +36,8 @@ export const initMenuForMainWindow = (app: App, mainWindow: BrowserWindow) => {
           {
             id: MenuItemId.DISCONNECT_SERVER,
             label: 'Disconnect',
-            click: () => {
+            click: async () => {
+              await mainApp.disconnectServer();
               sendMenuClickedToRenderer(MenuItemId.DISCONNECT_SERVER);
             },
           },

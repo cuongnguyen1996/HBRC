@@ -26,6 +26,12 @@ export class MqttTransporter extends BaseTransporter {
     this.logger.debug('createMqttTransporter', { options });
   }
 
+  protected _disconnect(): void {
+    if (this.mqttClient) {
+      this.mqttClient.end();
+    }
+  }
+
   protected _connect(): void {
     this.logger.debug('connect mqtt', { mqttOptions: this.options });
     const { url, username, password, subscribeTopics, clientId, qos } = this.options;

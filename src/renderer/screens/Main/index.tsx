@@ -4,11 +4,15 @@ import { useAppContext } from '@renderer/context/app';
 import FullScreenSpinner from '@renderer/components/common/FullScreenSpinner';
 import ServerInfo from '@renderer/components/ServerInfo';
 import BrowserInstanceManagerComponent from '@renderer/components/instance/BrowserInstanceManager';
+import OnboardConnection from '@renderer/components/OnboardConnection';
 
 export function MainScreen() {
-  const { isLoading, applicationInfo } = useAppContext();
+  const { isLoading, isOnboarded, applicationInfo } = useAppContext();
   if (isLoading) {
     return <FullScreenSpinner />;
+  }
+  if (!isOnboarded) {
+    return <OnboardConnection />;
   }
   return (
     <>
