@@ -3,7 +3,7 @@ import { Col, Divider, Row } from 'antd';
 import { useAppContext } from '@renderer/context/app';
 import FullScreenSpinner from '@renderer/components/common/FullScreenSpinner';
 import ServerInfo from '@renderer/components/ServerInfo';
-import BrowserInstanceList from '@renderer/components/instance/BrowserInstanceList';
+import BrowserInstanceManagerComponent from '@renderer/components/instance/BrowserInstanceManager';
 
 export function MainScreen() {
   const { isLoading, applicationInfo } = useAppContext();
@@ -18,7 +18,7 @@ export function MainScreen() {
       <Divider />
       <Row>
         <Col span={24}>
-          <BrowserInstanceList />
+          <BrowserInstanceManagerComponent />
         </Col>
       </Row>
     </>

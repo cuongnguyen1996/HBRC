@@ -70,6 +70,7 @@ export class PuppeteerElectron {
     if (!identifier) identifier = randomString(30);
     const window = new BrowserWindow({
       show: !!show,
+      autoHideMenuBar: true,
       webPreferences: {
         partition: `persist:${identifier}`,
         allowRunningInsecureContent: true,
