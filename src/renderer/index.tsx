@@ -11,13 +11,11 @@ import AppContextProvider from './context/app';
 const queryClient = new QueryClient();
 
 ReactDom.createRoot(document.getElementById('root') as HTMLElement).render(
-  <React.StrictMode>
-    <ConfigProvider>
-      <QueryClientProvider client={queryClient}>
-        <AppContextProvider>
-          <AppRoutes />
-        </AppContextProvider>
-      </QueryClientProvider>
-    </ConfigProvider>
-  </React.StrictMode>
+  <ConfigProvider>
+    <QueryClientProvider client={queryClient}>
+      <AppContextProvider>
+        <AppRoutes />
+      </AppContextProvider>
+    </QueryClientProvider>
+  </ConfigProvider>
 );
