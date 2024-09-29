@@ -27,7 +27,7 @@ function renderInstances(instances: any[]) {
   );
 }
 
-export function BrowserInstanceList() {
+export default function BrowserInstanceList() {
   const instanceManager = useBrowserInstanceManager();
 
   const { data: instances, isFetching } = useQuery({

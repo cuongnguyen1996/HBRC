@@ -1,20 +1,19 @@
 import React from 'react';
 import { Col, Divider, Row } from 'antd';
-import ConnectionStringComponent from '@renderer/components/ConnectionString';
-import { BrowserInstanceList } from '@renderer/components/instance/BrowserInstanceList';
-import { AddInstanceComponent } from '@renderer/components/instance/AddInstance';
+import { useAppContext } from '@renderer/context/app';
+import FullScreenSpinner from '@renderer/components/common/FullScreenSpinner';
+import ServerInfo from '@renderer/components/ServerInfo';
+import BrowserInstanceList from '@renderer/components/instance/BrowserInstanceList';
 
 export function MainScreen() {
+  const { isLoading, applicationInfo } = useAppContext();
+  if (isLoading) {
+    return <FullScreenSpinner />;
+  }
   return (
     <>
       <Row>
-        <Col span={24}>
-          <ConnectionStringComponent />
-        </Col>
-      </Row>
-      <Divider />
-      <Row>
-        <AddInstanceComponent />
+        <ServerInfo applicationInfo={applicationInfo} />
       </Row>
       <Divider />
       <Row>
