@@ -1,4 +1,4 @@
-import { ApplicationAPI, BrowserInstanceManagerAPI } from './app';
+import { ApplicationAPI, BrowserInstanceManagerAPI } from '@shared/types';
 
 declare global {
   interface Window {

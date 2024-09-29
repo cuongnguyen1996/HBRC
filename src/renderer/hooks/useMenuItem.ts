@@ -5,5 +5,8 @@ export function useMenuItem<D extends any>(menuItemId: string, callback: (data: 
   const application = useApplication();
   useEffect(() => {
     application.onMenuItemClick(menuItemId, callback);
+    return () => {
+      application.removeMenuItemClickCallback(menuItemId, callback);
+    };
   }, []);
 }

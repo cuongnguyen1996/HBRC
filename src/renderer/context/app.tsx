@@ -2,7 +2,7 @@ import { message } from 'antd';
 import { MessageInstance } from 'antd/es/message/interface';
 import React from 'react';
 import useApplication from '@renderer/hooks/useApplication';
-import { ApplicationAPI, ApplicationInfo } from '~/@types/app';
+import { ApplicationAPI, ApplicationInfo } from '@shared/types';
 import QueryKeys from '@renderer/constants/queryKeys';
 import { useQuery } from '@tanstack/react-query';
 

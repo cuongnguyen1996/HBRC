@@ -3,6 +3,7 @@ export type ApplicationAPI = {
   getApplicationInfo: () => Promise<any>;
   onServerDisconnect: (callback: () => void) => Promise<any>;
   onMenuItemClick: (menuItemId: string, callback: (data: any) => void) => Promise<any>;
+  removeMenuItemClickCallback: (menuItemId: string, callback: (data: any) => void) => Promise<any>;
 };
 
 export type BrowserInstanceManagerAPI = {
@@ -20,3 +21,5 @@ export type ApplicationOptions = {
 export type ApplicationInfo = {
   options?: ApplicationOptions;
 };
+
+export type MenuItemClickCallback = (data: any) => void;
