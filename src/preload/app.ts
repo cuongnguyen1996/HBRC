@@ -3,39 +3,32 @@ import {
   GET_APPLICATION_INFO,
   SET_APPLICATION_OPTIONS,
   ON_MENU_ITEM_CLICKED,
-  ON_SERVER_DISCONNECTED,
+  ON_APPLICATION_READY,
 } from '@shared/constants/ipcs';
-import { MenuItemClickCallback } from '@shared/types';
+import { MenuItemId } from '@shared/constants';
+import { PreloadEventKey, PreloadEventListener } from '@shared/event/preload';
+import { PreloadEvents } from './events';
 
-const menuItemClickCallbacks: Record<string, MenuItemClickCallback[]> = {};
+const preloadEvents = new PreloadEvents();
 
 ipcRenderer.on(ON_MENU_ITEM_CLICKED, (_, menuItemId, data: any) => {
-  const callbacks = menuItemClickCallbacks[menuItemId];
-  if (!callbacks) {
-    return;
-  }
-  callbacks.forEach((callback) => callback(data));
+  preloadEvents.emitMenuItemClickEvent(menuItemId, data);
+});
+
+ipcRenderer.on(ON_APPLICATION_READY, () => {
+  preloadEvents.emit(PreloadEventKey.APPLICATION_READY);
 });
 
 contextBridge.exposeInMainWorld('applicationAPI', {
   setApplicationOptions: (options: any) => ipcRenderer.invoke(SET_APPLICATION_OPTIONS, options),
   getApplicationInfo: () => ipcRenderer.invoke(GET_APPLICATION_INFO),
-  onServerDisconnect: (callback: () => void) => ipcRenderer.on(ON_SERVER_DISCONNECTED, callback),
-  onMenuItemClick: (expectMenuItemId: string, callback: (data: any) => void) => {
-    if (!menuItemClickCallbacks[expectMenuItemId]) {
-      menuItemClickCallbacks[expectMenuItemId] = [];
-    }
-    menuItemClickCallbacks[expectMenuItemId].push(callback);
+  subscribeEvent: <D>(eventKey: PreloadEventKey, callback: PreloadEventListener<D>) => {
+    return preloadEvents.subscribe(eventKey, callback);
   },
-  removeMenuItemClickCallback: (expectMenuItemId: string, callback: MenuItemClickCallback) => {
-    const callbacks = menuItemClickCallbacks[expectMenuItemId];
-    if (!callbacks) {
-      return;
-    }
-    const index = callbacks.indexOf(callback);
-    if (index === -1) {
-      return;
-    }
-    callbacks.splice(index, 1);
+  onMenuItemClick: <D>(menuItemId: MenuItemId, callback: PreloadEventListener<D>) => {
+    return preloadEvents.subscribeMenuItemClickEvent<D>(menuItemId, callback);
+  },
+  unsubscribeEvent: (subscriptionId: number) => {
+    preloadEvents.unsubscribe(subscriptionId);
   },
 });

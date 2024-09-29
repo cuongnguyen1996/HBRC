@@ -1,9 +1,13 @@
+import { EventSubscription } from '@shared/event';
+import { PreloadEventKey, PreloadEventListener } from '@shared/event/preload';
+import { MenuItemId } from '@shared/constants';
+
 export type ApplicationAPI = {
   setApplicationOptions: (options: any) => Promise<any>;
   getApplicationInfo: () => Promise<any>;
-  onServerDisconnect: (callback: () => void) => Promise<any>;
-  onMenuItemClick: (menuItemId: string, callback: (data: any) => void) => Promise<any>;
-  removeMenuItemClickCallback: (menuItemId: string, callback: (data: any) => void) => Promise<any>;
+  onMenuItemClick: (menuItemId: MenuItemId, callback: PreloadEventListener<any>) => number;
+  subscribeEvent: (eventKey: PreloadEventKey, callback: PreloadEventListener<any>) => number;
+  unsubscribeEvent: (subscriptionId: number) => void;
 };
 
 export type BrowserInstanceManagerAPI = {
@@ -21,5 +25,3 @@ export type ApplicationOptions = {
 export type ApplicationInfo = {
   options?: ApplicationOptions;
 };
-
-export type MenuItemClickCallback = (data: any) => void;
