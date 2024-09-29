@@ -10,7 +10,7 @@ import { makeAppSetup } from './factories';
 import { MainWindow } from './windows';
 import { registerIPCs } from './ipcs';
 import { Queue } from '@shared/queue/base';
-import { ON_APPLICATION_READY, ON_SERVER_DISCONNECTED } from '@shared/constants/ipcs';
+import { ON_APPLICATION_READY, ON_SERVER_DISCONNECTED, ON_TRANSPORTER_STATUS_CHANGED } from '@shared/constants/ipcs';
 import { FileQueue } from '@main/modules/queue';
 import {
   Transporter,
@@ -23,6 +23,7 @@ import {
 import { OutgoingTransportMessage, IncommingTransportMessage } from '@shared/types/message';
 import { getComputerName } from '@shared/utils/node';
 import { Logger, createLogger } from './logging';
+import { TransporterStatus } from '@shared/types/transporter';
 
 export type ApplicationOptions = {
   serverName?: string;
@@ -45,6 +46,7 @@ export class Application {
   private agentName: string;
   private logger: Logger;
   private mainWindow?: BrowserWindow;
+  private transporterStatus: TransporterStatus = 'disconnected';
   constructor(private readonly eApp: ElectronApp, private options: ApplicationOptions) {
     this.logger = createLogger('app', 'debug');
     this.kvStorage = new ElectronKvStorage();
@@ -66,6 +68,7 @@ export class Application {
   async getAppInfo() {
     return {
       options: this.options,
+      transporterStatus: this.transporterStatus,
     };
   }
 
@@ -82,6 +85,7 @@ export class Application {
     if (!transporter) {
       return;
     }
+    this.events.onTransporterStatusChanged.emit('connecting');
     if (transporter.mqtt) {
       this.transporter = new MqttTransporter(transporter.mqtt);
     } else if (transporter.http) {
@@ -96,6 +100,7 @@ export class Application {
       this.transporter.onConnected(async () => {
         await this.pushMessageToTransporter('info', { name: this.agentName });
         await this.instanceManager.pushListInstanceMessage();
+        this.events.onTransporterStatusChanged.emit('connected');
       });
       this.transporter.connect();
     }
@@ -157,12 +162,17 @@ export class Application {
     this.events.onClientReady.listen(() => {
       this.sendMainWindowEvent(ON_APPLICATION_READY);
     });
+    this.events.onTransporterStatusChanged.listen((status) => {
+      this.transporterStatus = status;
+      this.sendMainWindowEvent(ON_TRANSPORTER_STATUS_CHANGED, status);
+    });
   }
 
   async disconnectServer() {
     this.options = {};
     this.clientKvStorage.delItem('applicationOptions');
     this.transporter.disconnect();
+    this.events.onTransporterStatusChanged.emit('disconnected');
     this.sendMainWindowEvent(ON_SERVER_DISCONNECTED);
   }
 

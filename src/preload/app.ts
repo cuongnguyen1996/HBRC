@@ -5,10 +5,12 @@ import {
   ON_MENU_ITEM_CLICKED,
   ON_APPLICATION_READY,
   ON_SERVER_DISCONNECTED,
+  ON_TRANSPORTER_STATUS_CHANGED,
 } from '@shared/constants/ipcs';
 import { MenuItemId } from '@shared/constants';
 import { PreloadEventKey, PreloadEventListener } from '@shared/event/preload';
 import { PreloadEvents } from './events';
+import { TransporterStatus } from '@shared/types/transporter';
 
 const preloadEvents = new PreloadEvents();
 
@@ -22,6 +24,10 @@ ipcRenderer.on(ON_APPLICATION_READY, () => {
 
 ipcRenderer.on(ON_SERVER_DISCONNECTED, () => {
   preloadEvents.emit(PreloadEventKey.SERVER_DISCONNECTED);
+});
+
+ipcRenderer.on(ON_TRANSPORTER_STATUS_CHANGED, (_, status: TransporterStatus) => {
+  preloadEvents.emit(PreloadEventKey.TRANSPORTER_STATUS_CHANGED, status);
 });
 
 contextBridge.exposeInMainWorld('applicationAPI', {

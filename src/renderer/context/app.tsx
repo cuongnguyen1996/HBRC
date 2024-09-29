@@ -48,9 +48,13 @@ export default function AppContextProvider({ children }) {
     const serverDisSubId = application.subscribeEvent(PreloadEventKey.SERVER_DISCONNECTED, () => {
       refetch();
     });
+    const transporterStatusSubId = application.subscribeEvent(PreloadEventKey.TRANSPORTER_STATUS_CHANGED, () => {
+      refetch();
+    });
     return () => {
       application.unsubscribeEvent(apReadySubId);
       application.unsubscribeEvent(serverDisSubId);
+      application.unsubscribeEvent(transporterStatusSubId);
     };
   }, []);
 

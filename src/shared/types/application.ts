@@ -1,6 +1,6 @@
-import { EventSubscription } from '@shared/event';
 import { PreloadEventKey, PreloadEventListener } from '@shared/event/preload';
 import { MenuItemId } from '@shared/constants';
+import { TransporterStatus } from './transporter';
 
 export type ApplicationAPI = {
   setApplicationOptions: (options: any) => Promise<any>;
@@ -24,4 +24,5 @@ export type ApplicationOptions = {
 
 export type ApplicationInfo = {
   options?: ApplicationOptions;
+  transporterStatus: TransporterStatus;
 };
