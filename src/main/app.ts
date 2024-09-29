@@ -10,6 +10,7 @@ import { makeAppSetup } from './factories';
 import { MainWindow } from './windows';
 import { registerIPCs } from './ipcs';
 import { Queue } from '@shared/queue/base';
+import { ON_APPLICATION_READY } from '@shared/constants/ipcs';
 import { FileQueue } from '@main/modules/queue';
 import {
   Transporter,
@@ -142,7 +143,10 @@ export class Application {
   async initElectronApp() {
     await this.eApp.whenReady();
     registerIPCs(this);
-    await makeAppSetup(MainWindow);
+    const mainWindow = await makeAppSetup(MainWindow);
+    this.events.onClientReady.listen(() => {
+      mainWindow.webContents.send(ON_APPLICATION_READY);
+    });
   }
 
   getInstanceManager() {

@@ -10,6 +10,7 @@ export class PreloadEvents {
   menuItemClickedEventMap: Map<string, Event<any>>;
 
   constructor() {
+    this.eventMap = new Map();
     this.menuItemClickedEventMap = new Map();
     this.subscriptionIdMap = new Map();
     this.subscriptionId = 0;
