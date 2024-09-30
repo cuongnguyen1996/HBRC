@@ -35,7 +35,7 @@ export default function OnboardConnection() {
           <Row justify={'center'}>
             <h1 style={{ fontSize: 50 }}>HBRC</h1>
           </Row>
-          <Row justify={'center'}>
+          <Row justify={'center'} style={{ marginTop: -25 }}>
             <span>Version: {applicationInfo.version}</span>
           </Row>
           <Row justify={'center'} style={{ marginTop: 20 }}>

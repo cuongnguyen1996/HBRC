@@ -1,7 +1,7 @@
 import { BrowserWindow, app, shell } from 'electron';
 
 import { createWindow } from '@main/factories';
-import { ENVIRONMENT } from '@shared/constants';
+import { ENVIRONMENT, MenuItemId } from '@shared/constants';
 import { PRELOAD_FILE_PATH } from '@main/config';
 import { initMenuForMainWindow } from '@main/menu';
 import Application from '@main/app';
@@ -31,7 +31,9 @@ export async function MainWindow(mainApp: Application) {
     }
   });
 
-  initMenuForMainWindow(app, mainApp, mainWindow);
+  initMenuForMainWindow(app, mainApp, mainWindow, {
+    excludeMenuItemIds: [MenuItemId.SERVER, MenuItemId.MANAGE],
+  });
 
   mainWindow.on('close', () => BrowserWindow.getAllWindows().forEach((window) => window.destroy()));
 

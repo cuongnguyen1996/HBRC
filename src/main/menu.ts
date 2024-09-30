@@ -23,7 +23,13 @@ export const initMenu = (app: App) => {
   Menu.setApplicationMenu(menu);
 };
 
-export const initMenuForMainWindow = (app: App, mainApp: Application, mainWindow: BrowserWindow) => {
+export const initMenuForMainWindow = (
+  app: App,
+  mainApp: Application,
+  mainWindow: BrowserWindow,
+  options?: { excludeMenuItemIds?: MenuItemId[]; includeMenuItemIds?: MenuItemId[] }
+) => {
+  const { excludeMenuItemIds, includeMenuItemIds } = options || {};
   const sendMenuClickedToRenderer = (menuItemId: string, data?: any) => {
     mainWindow.webContents.send(ON_MENU_ITEM_CLICKED, menuItemId, data);
   };
@@ -32,87 +38,100 @@ export const initMenuForMainWindow = (app: App, mainApp: Application, mainWindow
     mainWindow.webContents.send(ON_MENU_ITEM_PROCESSED, menuItemId, data);
   };
 
-  addMenuItems(
-    [
+  const serverMenu: any = {
+    id: MenuItemId.SERVER,
+    label: 'Server',
+    submenu: [
       {
-        id: MenuItemId.SERVER,
-        label: 'Server',
-        submenu: [
-          {
-            id: MenuItemId.DISCONNECT_SERVER,
-            label: 'Disconnect',
-            click: async () => {
-              await mainApp.disconnectServer();
-              sendMenuClickedToRenderer(MenuItemId.DISCONNECT_SERVER);
-            },
-          },
-          {
-            id: MenuItemId.DEBUG,
-            label: 'Debug',
-            click: async () => {
-              await DebugWindow();
-            },
-          },
-          {
-            label: 'Exit',
-            click: () => app.quit(),
-          },
-        ],
+        id: MenuItemId.DISCONNECT_SERVER,
+        label: 'Disconnect',
+        click: async () => {
+          await mainApp.disconnectServer();
+          sendMenuClickedToRenderer(MenuItemId.DISCONNECT_SERVER);
+        },
       },
       {
-        id: MenuItemId.ADD_INSTANCE,
-        label: 'Manage',
-        submenu: [
-          {
-            id: MenuItemId.ADD_INSTANCE,
-            label: 'Add Instance',
-            click: () => {
-              sendMenuClickedToRenderer(MenuItemId.ADD_INSTANCE);
-            },
-          },
-          {
-            id: MenuItemId.START_ALL_INSTANCES,
-            label: 'Start all instances',
-            click: async () => {
-              sendMenuClickedToRenderer(MenuItemId.START_ALL_INSTANCES);
-              await mainApp.getInstanceManager().startAllInstances();
-              sendMenuProcessedToRenderer(MenuItemId.START_ALL_INSTANCES);
-            },
-          },
-          {
-            id: MenuItemId.STOP_ALL_INSTANCES,
-            label: 'Stop all instances',
-            click: async () => {
-              sendMenuClickedToRenderer(MenuItemId.STOP_ALL_INSTANCES);
-              await mainApp.getInstanceManager().stopAllInstances();
-              sendMenuProcessedToRenderer(MenuItemId.STOP_ALL_INSTANCES);
-            },
-          },
-        ],
+        id: MenuItemId.DEBUG,
+        label: 'Debug',
+        click: async () => {
+          await DebugWindow();
+        },
       },
       {
-        id: MenuItemId.HELP,
-        label: 'Help',
-        submenu: [
-          {
-            id: MenuItemId.DOCUMENT,
-            label: 'Document',
-            click: () => {
-              shell.openExternal(GITHUB_REPOSITORY_URL);
-            },
-          },
-          {
-            id: MenuItemId.ABOUT_US,
-            label: 'About us',
-            click: async () => {
-              await AboutUsWindow();
-            },
-          },
-        ],
+        label: 'Exit',
+        click: () => app.quit(),
       },
     ],
-    mainWindow
-  );
+  };
+
+  const manageMenu = {
+    id: MenuItemId.MANAGE,
+    label: 'Manage',
+    submenu: [
+      {
+        id: MenuItemId.ADD_INSTANCE,
+        label: 'Add Instance',
+        click: () => {
+          sendMenuClickedToRenderer(MenuItemId.ADD_INSTANCE);
+        },
+      },
+      {
+        id: MenuItemId.START_ALL_INSTANCES,
+        label: 'Start all instances',
+        click: async () => {
+          sendMenuClickedToRenderer(MenuItemId.START_ALL_INSTANCES);
+          await mainApp.getInstanceManager().startAllInstances();
+          sendMenuProcessedToRenderer(MenuItemId.START_ALL_INSTANCES);
+        },
+      },
+      {
+        id: MenuItemId.STOP_ALL_INSTANCES,
+        label: 'Stop all instances',
+        click: async () => {
+          sendMenuClickedToRenderer(MenuItemId.STOP_ALL_INSTANCES);
+          await mainApp.getInstanceManager().stopAllInstances();
+          sendMenuProcessedToRenderer(MenuItemId.STOP_ALL_INSTANCES);
+        },
+      },
+    ],
+  };
+
+  const helpMenu = {
+    id: MenuItemId.HELP,
+    label: 'Help',
+    submenu: [
+      {
+        id: MenuItemId.DOCUMENT,
+        label: 'Document',
+        click: () => {
+          shell.openExternal(GITHUB_REPOSITORY_URL);
+        },
+      },
+      {
+        id: MenuItemId.ABOUT_US,
+        label: 'About us',
+        click: async () => {
+          await AboutUsWindow();
+        },
+      },
+    ],
+  };
+
+  const menuList = [serverMenu, manageMenu, helpMenu];
+  let menuItems = menuList;
+  if (excludeMenuItemIds) {
+    menuItems = menuList.filter((menu) => !excludeMenuItemIds.includes(menu.id));
+    menuItems.forEach((menu) => {
+      menu.submenu = menu.submenu.filter((item: any) => !excludeMenuItemIds.includes(item.id));
+    });
+  } else if (includeMenuItemIds) {
+    menuItems = menuList.filter((menu) => includeMenuItemIds.includes(menu.id));
+    menuItems.forEach((menu) => {
+      menu.submenu = menu.submenu.filter((item: any) => includeMenuItemIds.includes(item.id));
+    });
+  }
+
+  addMenuItems(menuItems, mainWindow);
 };
 
 export const addMenuItem = (menuItem: Electron.MenuItemConstructorOptions) => {

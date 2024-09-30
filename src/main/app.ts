@@ -29,6 +29,8 @@ import { OutgoingTransportMessage, IncommingTransportMessage } from '@shared/typ
 import { getComputerName } from '@shared/utils/node';
 import { Logger, createLogger } from './logging';
 import { TransporterStatus } from '@shared/types/transporter';
+import { initMenuForMainWindow } from './menu';
+import { MenuItemId } from '@shared/constants';
 
 export type ApplicationOptions = {
   serverName?: string;
@@ -88,6 +90,21 @@ export class Application {
     await this.initTranporter(options.transporter);
     if (save) {
       await this.clientKvStorage.setItem('applicationOptions', this.options);
+    }
+    this.setMainWindowMenuVisibilityOnConnected();
+  }
+
+  private setMainWindowMenuVisibilityOnConnected() {
+    if (this.mainWindow) {
+      initMenuForMainWindow(app, this, this.mainWindow);
+    }
+  }
+
+  private setMainWindowMenuVisibilityOnDisconnected() {
+    if (this.mainWindow) {
+      initMenuForMainWindow(app, this, this.mainWindow, {
+        excludeMenuItemIds: [MenuItemId.SERVER, MenuItemId.MANAGE],
+      });
     }
   }
 
@@ -191,6 +208,7 @@ export class Application {
     this.transporter.disconnect();
     this.events.onTransporterStatusChanged.emit('disconnected');
     this.sendMainWindowEvent(ON_SERVER_DISCONNECTED);
+    this.setMainWindowMenuVisibilityOnDisconnected();
   }
 
   getInstanceManager() {
