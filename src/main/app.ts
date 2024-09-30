@@ -10,7 +10,12 @@ import { makeAppSetup } from './factories';
 import { MainWindow } from './windows';
 import { registerIPCs } from './ipcs';
 import { Queue } from '@shared/queue/base';
-import { ON_APPLICATION_READY, ON_SERVER_DISCONNECTED, ON_TRANSPORTER_STATUS_CHANGED } from '@shared/constants/ipcs';
+import {
+  ON_APPLICATION_READY,
+  ON_INSTANCE_UPDATED,
+  ON_SERVER_DISCONNECTED,
+  ON_TRANSPORTER_STATUS_CHANGED,
+} from '@shared/constants/ipcs';
 import { FileQueue } from '@main/modules/queue';
 import {
   Transporter,
@@ -57,10 +62,14 @@ export class Application {
       messageMaxRequeueNumber: 10,
     });
     this.cttMessagesQueue = new FileQueue(path.join(eApp.getAppPath(), 'out', 'data', 'message_queues', 'ctt'));
-    this.instanceManager = new BrowserInstanceManager(this.puppeteerElectron, {
-      ttc: this.ttcMessagesQueue,
-      ctt: this.cttMessagesQueue,
-    });
+    this.instanceManager = new BrowserInstanceManager(
+      this.puppeteerElectron,
+      {
+        ttc: this.ttcMessagesQueue,
+        ctt: this.cttMessagesQueue,
+      },
+      this.events
+    );
     this.transporter = new DummyTransporter();
     this.agentName = getComputerName();
   }
@@ -165,6 +174,9 @@ export class Application {
     this.events.onTransporterStatusChanged.listen((status) => {
       this.transporterStatus = status;
       this.sendMainWindowEvent(ON_TRANSPORTER_STATUS_CHANGED, status);
+    });
+    this.events.onInstanceUpdated.listen((data) => {
+      this.sendMainWindowEvent(ON_INSTANCE_UPDATED, data);
     });
   }
 

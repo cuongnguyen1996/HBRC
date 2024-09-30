@@ -53,10 +53,21 @@ export class PreloadEvents {
     return subId;
   }
 
+  subscribeMulti(eventKeys: PreloadEventKey[], callback: PreloadEventListener<any>) {
+    const subIds = eventKeys.map((eventKey) => this.subscribe(eventKey, callback));
+    return subIds;
+  }
+
   unsubscribe(subscriptionId: number) {
     const sub = this.subscriptionIdMap.get(subscriptionId);
     if (sub) {
       sub.unsubscribe();
     }
+  }
+
+  unsubscribeMulti(subscriptionIds: number[]) {
+    subscriptionIds.forEach((subId) => {
+      this.unsubscribe(subId);
+    });
   }
 }

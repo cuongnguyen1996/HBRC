@@ -1,14 +1,16 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Row, Col, Empty, Spin } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import QueryKeys from '@renderer/constants/queryKeys';
 import useBrowserInstanceManager from '@renderer/hooks/useBrowserInstanceManager';
 import BrowserInstanceComponent from './BrowserInstance';
+import useApplication from '@renderer/hooks/useApplication';
+import { PreloadEventKey } from '@shared/event/preload';
 
 function renderSpin() {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-      <Spin tip="Loading" size="large"></Spin>
+      <Spin size="large"></Spin>
     </div>
   );
 }
@@ -29,13 +31,21 @@ function renderInstances(instances: any[]) {
 
 export default function BrowserInstanceList() {
   const instanceManager = useBrowserInstanceManager();
-
-  const { data: instances, isFetching } = useQuery({
+  const application = useApplication();
+  const {
+    data: instances,
+    isFetching,
+    refetch,
+  } = useQuery({
     queryKey: [QueryKeys.GET_INSTANCES],
     queryFn: instanceManager.getInstances,
   });
 
-  console.log('instances', instances);
+  useEffect(() => {
+    application.subscribeEvent(PreloadEventKey.INSTANCE_UPDATED, () => {
+      refetch();
+    });
+  }, []);
 
   const isEmpty = !instances || !instances.length;
 

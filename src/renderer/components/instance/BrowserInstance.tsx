@@ -1,10 +1,17 @@
 import React from 'react';
 import { Card, Tag, Popconfirm, message, Modal, Form, Input, Button } from 'antd';
-import { SendOutlined, WindowsOutlined, DeleteOutlined } from '@ant-design/icons';
+import {
+  SendOutlined,
+  WindowsOutlined,
+  DeleteOutlined,
+  PlayCircleOutlined,
+  PauseCircleOutlined,
+} from '@ant-design/icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import QueryKeys from '@renderer/constants/queryKeys';
 import useBrowserInstanceManager from '@renderer/hooks/useBrowserInstanceManager';
 import { ENVIRONMENT } from '@shared/constants';
+import { BrowserInstance } from '@shared/types';
 
 const DeleteBtn = ({ disabled, onConfirm }) => {
   return (
@@ -24,6 +31,7 @@ const DeleteBtn = ({ disabled, onConfirm }) => {
 const IS_DEBUG = ENVIRONMENT.IS_DEBUG;
 
 const CallFunctionModal = ({ isOpen, instance, setIsOpen }) => {
+  const { sessionId } = instance;
   const instanceManager = useBrowserInstanceManager();
   const callFunction = useMutation({
     mutationFn: async ({ sessionId, method, args }: { sessionId: string; method: string; args: any[] }) =>
@@ -45,7 +53,7 @@ const CallFunctionModal = ({ isOpen, instance, setIsOpen }) => {
     >
       <Form
         onFinish={(values) => {
-          callFunction.mutate({ sessionId: instance.sessionId, method: values.method, args: [values.code] });
+          callFunction.mutate({ sessionId, method: values.method, args: [values.code] });
         }}
         name="basic"
         labelCol={{ span: 8 }}
@@ -70,7 +78,9 @@ const CallFunctionModal = ({ isOpen, instance, setIsOpen }) => {
   );
 };
 
-export default function BrowserInstanceComponent({ instance }) {
+export default function BrowserInstanceComponent({ instance }: { instance: BrowserInstance }) {
+  const { status, sessionId } = instance;
+
   const instanceManager = useBrowserInstanceManager();
 
   const queryClient = useQueryClient();
@@ -85,36 +95,93 @@ export default function BrowserInstanceComponent({ instance }) {
     },
   });
 
+  const startInstance = useMutation({
+    mutationFn: instanceManager.startInstance,
+    onSuccess: () => {
+      message.success('Start intance success');
+    },
+    onError(error, variables, context) {
+      message.error('Start intance failed');
+    },
+  });
+
+  const stopInstance = useMutation({
+    mutationFn: instanceManager.stopInstance,
+    onSuccess: () => {
+      message.success('Stop intance success');
+    },
+    onError(error, variables, context) {
+      message.error('Stop intance failed');
+    },
+  });
+
   const [isCFModalOpen, setCFModalOpen] = React.useState(false);
 
-  const actions = [
-    <WindowsOutlined
-      key="showWindow"
-      onClick={() => {
-        instanceManager.showInstanceWindow(instance.sessionId);
-      }}
-    />,
-    ,
-    <DeleteBtn
-      key="delete"
-      disabled={deleteChannel.isPending}
-      onConfirm={() => deleteChannel.mutate(instance.sessionId)}
-    />,
-  ];
-  if (IS_DEBUG) {
+  const actions = [];
+
+  if (status === 'Running') {
     actions.push(
-      <SendOutlined
-        key="call"
+      <PauseCircleOutlined
+        style={{ color: 'orange' }}
+        key="stop"
         onClick={() => {
-          setCFModalOpen(true);
+          stopInstance.mutate(sessionId);
+        }}
+      />
+    );
+    actions.push(
+      <WindowsOutlined
+        key="showWindow"
+        onClick={() => {
+          instanceManager.showInstanceWindow(sessionId);
+        }}
+      />
+    );
+    if (IS_DEBUG) {
+      actions.push(
+        <SendOutlined
+          key="call"
+          onClick={() => {
+            setCFModalOpen(true);
+          }}
+        />
+      );
+    }
+  } else if (status === 'Stopped') {
+    actions.push(
+      <PlayCircleOutlined
+        style={{ color: 'green' }}
+        key="start"
+        onClick={() => {
+          startInstance.mutate(sessionId);
         }}
       />
     );
   }
+  actions.push(
+    <DeleteBtn key="delete" disabled={deleteChannel.isPending} onConfirm={() => deleteChannel.mutate(sessionId)} />
+  );
+
+  let statusColor = 'default';
+  if (status === 'Running') {
+    statusColor = 'green';
+  } else if (status === 'Stopped') {
+    statusColor = 'red';
+  } else if (status === 'Starting' || status === 'Stopping') {
+    statusColor = 'orange';
+  }
 
   return (
     <Card actions={actions}>
-      <Card.Meta title={instance.name} description={instance.url} />
+      <Card.Meta
+        title={instance.name}
+        description={
+          <div>
+            <Tag color={statusColor}>{status}</Tag>
+            <Tag color="blue">{instance.url}</Tag>
+          </div>
+        }
+      />
       <CallFunctionModal instance={instance} isOpen={isCFModalOpen} setIsOpen={setCFModalOpen} />
     </Card>
   );

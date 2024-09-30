@@ -4,10 +4,13 @@ export type BrowserInstanceInstruction = {
   args: any[];
 };
 
+export type BrowserInstanceStatus = 'Running' | 'Stopped' | 'Starting' | 'Stopping';
+
 export type BrowserInstance = {
   sessionId: string;
   name: string;
   url: string;
+  status?: BrowserInstanceStatus;
   initInstructions?: BrowserInstanceInstruction[];
   [key: string]: any;
 };

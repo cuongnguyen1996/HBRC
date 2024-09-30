@@ -92,7 +92,15 @@ export class PuppeteerElectron {
     return { window, page, identifier };
   }
 
-  async closeWindow(identifier: string) {}
+  async closeWindow(identifier: string) {
+    const { window, page } = this.windowPageMap.get(identifier) || {};
+    if (window) {
+      window.close();
+    }
+    if (page) {
+      page.close();
+    }
+  }
 
   async hideWindow(identifier: string) {
     const { window } = this.windowPageMap.get(identifier) || {};

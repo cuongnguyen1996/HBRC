@@ -9,6 +9,7 @@ export interface BrowserInstanceController {
   executeInstructions(instructions: BrowserInstanceInstruction[]): Promise<any>;
   executeInstruction(instruction: BrowserInstanceInstruction): Promise<any>;
   setInstance(instance: BrowserInstance): Promise<void>;
+  destroy(): Promise<void>;
 }
 
 export abstract class BaseBrowserInstanceController implements BrowserInstanceController {
@@ -48,6 +49,10 @@ export abstract class BaseBrowserInstanceController implements BrowserInstanceCo
   }
 
   init(): Promise<void> {
+    throw new Error('Method not implemented');
+  }
+
+  async destroy() {
     throw new Error('Method not implemented');
   }
 }

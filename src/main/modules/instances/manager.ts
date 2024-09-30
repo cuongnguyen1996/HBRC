@@ -4,21 +4,24 @@ import { join } from 'path';
 import { PuppeteerElectron } from '@main/pie';
 import { PuppeteerInstanceController, BrowserInstanceController } from './controllers';
 import { Page } from 'puppeteer-core';
-import { BrowserInstance } from '@shared/types';
+import { BrowserInstance, BrowserInstanceStatus } from '@shared/types';
 import { Queue } from '@shared/queue';
 import { IncommingTransportMessage, OutgoingTransportMessage } from '@shared/types/message';
 import { Logger, createLogger } from '@main/logging';
+import { ClientEvents } from '../events';
 
 class BrowserInstanceManager {
   private db: FSDB;
   private channelControlllerMap = new Map<string, BrowserInstanceController>();
+  private instanceStatusMap = new Map<string, BrowserInstanceStatus>();
   private logger: Logger;
   constructor(
     private readonly pie: PuppeteerElectron,
     private readonly messageQueues: {
       ttc: Queue;
       ctt: Queue;
-    }
+    },
+    private readonly clientEvents: ClientEvents
   ) {
     this.logger = createLogger('browserInstanceManager', 'debug');
   }
@@ -27,7 +30,12 @@ class BrowserInstanceManager {
     const appPath = app.getAppPath();
     const dbPath = join(appPath, 'out', 'data', 'instances.json');
     this.db = new FSDB(dbPath, true);
-    await this.loadInstanceWindowPages();
+    this.clientEvents.onInstanceUpdated.listen(({ sessionId, updated }) => {
+      if (updated.status) {
+        this.instanceStatusMap.set(sessionId, updated.status);
+      }
+    });
+    // await this.loadInstanceWindowPages();
     this.messageQueues.ttc.onMessage(this.processTransportMessage.bind(this));
     await this.messageQueues.ttc.start();
   }
@@ -65,12 +73,50 @@ class BrowserInstanceManager {
     }
   }
 
+  private finalizeInstanceData(bi: BrowserInstance) {
+    if (!bi) {
+      return bi;
+    }
+    bi.status = this.instanceStatusMap.get(bi.sessionId) || 'Stopped';
+    return bi;
+  }
+
   async getInstances() {
-    return this.db.getAll().map((e) => e.value);
+    return this.db.getAll().map((e) => {
+      return this.finalizeInstanceData(e.value);
+    });
+  }
+
+  async getRunningInstanceSessionIdSet() {
+    return new Set(this.channelControlllerMap.keys());
   }
 
   async getInstance(sessionId: string) {
-    return this.db.get(sessionId);
+    const instance = this.db.get(sessionId);
+    return this.finalizeInstanceData(instance);
+  }
+
+  async startInstance(sessionId: string) {
+    const instance = await this.getInstance(sessionId);
+    if (!instance) {
+      throw new Error(`Instance not found: ${sessionId}`);
+    }
+    await this.loadInstanceWindowPage(instance);
+  }
+
+  private emitInstanceUpdatedEvent(sessionId: string, updated: Partial<BrowserInstance>) {
+    this.clientEvents.onInstanceUpdated.emit({ sessionId, updated });
+  }
+
+  async stopInstance(sessionId: string) {
+    this.emitInstanceUpdatedEvent(sessionId, { status: 'Stopping' });
+    const controller = this.getController(sessionId);
+    if (controller) {
+      await controller.destroy();
+      await this.pie.closeWindow(sessionId);
+      this.channelControlllerMap.delete(sessionId);
+    }
+    this.emitInstanceUpdatedEvent(sessionId, { status: 'Stopped' });
   }
 
   async addInstance(name: string, url: string) {
@@ -123,6 +169,7 @@ class BrowserInstanceManager {
     if (this.channelControlllerMap.has(bi.sessionId)) {
       return;
     }
+    this.emitInstanceUpdatedEvent(bi.sessionId, { status: 'Starting' });
     const { page } = await this.pie.newWindowPage(bi.url, bi.sessionId, {
       show: false,
       hideOnClose: true,
@@ -135,6 +182,7 @@ class BrowserInstanceManager {
     const controller = new PuppeteerInstanceController(bi, this.messageQueues, page);
     this.channelControlllerMap.set(bi.sessionId, controller);
     await controller.init();
+    this.emitInstanceUpdatedEvent(bi.sessionId, { status: 'Running' });
     return controller;
   }
 

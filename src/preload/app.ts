@@ -6,6 +6,7 @@ import {
   ON_APPLICATION_READY,
   ON_SERVER_DISCONNECTED,
   ON_TRANSPORTER_STATUS_CHANGED,
+  ON_INSTANCE_UPDATED,
 } from '@shared/constants/ipcs';
 import { MenuItemId } from '@shared/constants';
 import { PreloadEventKey, PreloadEventListener } from '@shared/event/preload';
@@ -30,16 +31,26 @@ ipcRenderer.on(ON_TRANSPORTER_STATUS_CHANGED, (_, status: TransporterStatus) => 
   preloadEvents.emit(PreloadEventKey.TRANSPORTER_STATUS_CHANGED, status);
 });
 
+ipcRenderer.on(ON_INSTANCE_UPDATED, (_, data: any) => {
+  preloadEvents.emit(PreloadEventKey.INSTANCE_UPDATED, data);
+});
+
 contextBridge.exposeInMainWorld('applicationAPI', {
   setApplicationOptions: (options: any) => ipcRenderer.invoke(SET_APPLICATION_OPTIONS, options),
   getApplicationInfo: () => ipcRenderer.invoke(GET_APPLICATION_INFO),
   subscribeEvent: <D>(eventKey: PreloadEventKey, callback: PreloadEventListener<D>) => {
     return preloadEvents.subscribe(eventKey, callback);
   },
-  onMenuItemClick: <D>(menuItemId: MenuItemId, callback: PreloadEventListener<D>) => {
-    return preloadEvents.subscribeMenuItemClickEvent<D>(menuItemId, callback);
+  subscribeEvents: (eventKeys: PreloadEventKey[], callback: PreloadEventListener<any>) => {
+    return preloadEvents.subscribeMulti(eventKeys, callback);
   },
   unsubscribeEvent: (subscriptionId: number) => {
     preloadEvents.unsubscribe(subscriptionId);
+  },
+  unsubscribeEvents: (subscriptionId: number[]) => {
+    preloadEvents.unsubscribeMulti(subscriptionId);
+  },
+  onMenuItemClick: <D>(menuItemId: MenuItemId, callback: PreloadEventListener<D>) => {
+    return preloadEvents.subscribeMenuItemClickEvent<D>(menuItemId, callback);
   },
 });

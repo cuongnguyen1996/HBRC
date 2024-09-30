@@ -74,4 +74,8 @@ export class PuppeteerInstanceController extends BaseBrowserInstanceController {
   browserEval(code: string): Promise<any> {
     return this.page.evaluate(code);
   }
+
+  destroy(): Promise<void> {
+    return;
+  }
 }

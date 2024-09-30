@@ -7,6 +7,8 @@ import {
   SET_APPLICATION_OPTIONS,
   CALL_INSTANCE_FUNCTION,
   GET_APPLICATION_INFO,
+  START_INSTANCE,
+  STOP_INSTANCE,
 } from '@shared/constants/ipcs';
 import { Application } from '../app';
 
@@ -33,6 +35,15 @@ export const registerIPCs = (app: Application) => {
     return await app.getInstanceManager().callInstanceFunction(sessionId, method, ...fArgs);
   });
 
+  ipcMain.handle(START_INSTANCE, async (...args) => {
+    const [_, sessionId] = args;
+    await app.getInstanceManager().startInstance(sessionId);
+  });
+
+  ipcMain.handle(STOP_INSTANCE, async (...args) => {
+    const [_, sessionId] = args;
+    await app.getInstanceManager().stopInstance(sessionId);
+  });
   // Application
   ipcMain.handle(SET_APPLICATION_OPTIONS, async (...args) => {
     const [_, options] = args;
