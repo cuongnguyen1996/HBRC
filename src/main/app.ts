@@ -78,6 +78,7 @@ export class Application {
     return {
       options: this.options,
       transporterStatus: this.transporterStatus,
+      version: app.getVersion(),
     };
   }
 

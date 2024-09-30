@@ -1,8 +1,9 @@
-import { App, BrowserWindow, Menu } from 'electron';
+import { App, BrowserWindow, Menu, shell } from 'electron';
 import { DebugWindow } from './windows/Debug';
 import { PLATFORM } from '@shared/constants/main';
-import { MenuItemId, ON_MENU_ITEM_CLICKED, ON_MENU_ITEM_PROCESSED } from '@shared/constants';
+import { GITHUB_REPOSITORY_URL, MenuItemId, ON_MENU_ITEM_CLICKED, ON_MENU_ITEM_PROCESSED } from '@shared/constants';
 import Application from './app';
+import { AboutUsWindow } from './windows/AboutUs';
 
 export const initMenu = (app: App) => {
   const macMenu = [
@@ -85,6 +86,26 @@ export const initMenuForMainWindow = (app: App, mainApp: Application, mainWindow
               sendMenuClickedToRenderer(MenuItemId.STOP_ALL_INSTANCES);
               await mainApp.getInstanceManager().stopAllInstances();
               sendMenuProcessedToRenderer(MenuItemId.STOP_ALL_INSTANCES);
+            },
+          },
+        ],
+      },
+      {
+        id: MenuItemId.HELP,
+        label: 'Help',
+        submenu: [
+          {
+            id: MenuItemId.DOCUMENT,
+            label: 'Document',
+            click: () => {
+              shell.openExternal(GITHUB_REPOSITORY_URL);
+            },
+          },
+          {
+            id: MenuItemId.ABOUT_US,
+            label: 'About us',
+            click: async () => {
+              await AboutUsWindow();
             },
           },
         ],

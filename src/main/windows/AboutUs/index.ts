@@ -1,21 +1,22 @@
 import { createWindow } from '@main/factories';
 import { ENVIRONMENT } from '@shared/constants';
 import { PRELOAD_FILE_PATH } from '@main/config';
+import { shell } from 'electron';
 
-export async function DebugWindow() {
+export async function AboutUsWindow() {
   const window = createWindow({
-    id: 'debug',
+    id: 'aboutUs',
     isSingleInstance: true,
     keepOpen: false,
-    title: 'Headless Browser Remote Controller Debugger',
-    width: 1200,
-    height: 720,
+    title: 'About us',
+    width: 600,
+    height: 360,
     show: true,
     center: true,
     movable: true,
-    resizable: true,
+    resizable: false,
     alwaysOnTop: false,
-    autoHideMenuBar: false,
+    autoHideMenuBar: true,
 
     webPreferences: {
       webSecurity: !ENVIRONMENT.IS_DEBUG,
@@ -23,10 +24,9 @@ export async function DebugWindow() {
     },
   });
 
-  window.webContents.on('did-finish-load', () => {
-    if (ENVIRONMENT.IS_LOCAL) {
-      window.webContents.openDevTools({ mode: 'undocked' });
-    }
+  window.webContents.setWindowOpenHandler((details) => {
+    shell.openExternal(details.url);
+    return { action: 'deny' };
   });
 
   return window;

@@ -1,4 +1,4 @@
-import { BrowserWindow, app } from 'electron';
+import { BrowserWindow, app, shell } from 'electron';
 
 import { createWindow } from '@main/factories';
 import { ENVIRONMENT } from '@shared/constants';

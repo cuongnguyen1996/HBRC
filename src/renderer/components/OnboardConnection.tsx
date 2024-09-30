@@ -10,7 +10,7 @@ export default function OnboardConnection() {
 
   const queryClient = useQueryClient();
 
-  const { messageApi, application } = useAppContext();
+  const { messageApi, application, applicationInfo } = useAppContext();
 
   const setApplicationOptions = useMutation({
     mutationFn: application.setApplicationOptions,
@@ -36,7 +36,7 @@ export default function OnboardConnection() {
             <h1 style={{ fontSize: 50 }}>HBRC</h1>
           </Row>
           <Row justify={'center'}>
-            <span>Version: 0.0.0</span>
+            <span>Version: {applicationInfo.version}</span>
           </Row>
           <Row justify={'center'} style={{ marginTop: 20 }}>
             <Col span={12}>

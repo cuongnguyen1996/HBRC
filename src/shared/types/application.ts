@@ -30,4 +30,5 @@ export type ApplicationOptions = {
 export type ApplicationInfo = {
   options?: ApplicationOptions;
   transporterStatus: TransporterStatus;
+  version: string;
 };

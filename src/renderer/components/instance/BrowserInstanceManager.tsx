@@ -4,16 +4,15 @@ import { Modal } from 'antd';
 import useApplication from '@renderer/hooks/useApplication';
 import { MenuItemId } from '@shared/constants';
 import { AddInstanceComponent } from './AddInstance';
+import { useMenuItem } from '@renderer/hooks/useMenuItem';
 
 export default function BrowserInstanceManagerComponent() {
   const application = useApplication();
   const [isOpenAddInstanceModal, setIsOpenAddInstanceModal] = React.useState(false);
 
-  useEffect(() => {
-    application.onMenuItemClick(MenuItemId.ADD_INSTANCE, () => {
-      setIsOpenAddInstanceModal(true);
-    });
-  }, []);
+  useMenuItem(MenuItemId.ADD_INSTANCE, () => {
+    setIsOpenAddInstanceModal(true);
+  });
 
   return (
     <>
