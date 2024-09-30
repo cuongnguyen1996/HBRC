@@ -3,6 +3,7 @@ import {
   GET_APPLICATION_INFO,
   SET_APPLICATION_OPTIONS,
   ON_MENU_ITEM_CLICKED,
+  ON_MENU_ITEM_PROCESSED,
   ON_APPLICATION_READY,
   ON_SERVER_DISCONNECTED,
   ON_TRANSPORTER_STATUS_CHANGED,
@@ -17,6 +18,10 @@ const preloadEvents = new PreloadEvents();
 
 ipcRenderer.on(ON_MENU_ITEM_CLICKED, (_, menuItemId, data: any) => {
   preloadEvents.emitMenuItemClickEvent(menuItemId, data);
+});
+
+ipcRenderer.on(ON_MENU_ITEM_PROCESSED, (_, menuItemId, data: any) => {
+  preloadEvents.emitMenuItemProcessedEvent(menuItemId, data);
 });
 
 ipcRenderer.on(ON_APPLICATION_READY, () => {
@@ -52,5 +57,8 @@ contextBridge.exposeInMainWorld('applicationAPI', {
   },
   onMenuItemClick: <D>(menuItemId: MenuItemId, callback: PreloadEventListener<D>) => {
     return preloadEvents.subscribeMenuItemClickEvent<D>(menuItemId, callback);
+  },
+  onMenuItemProcessed: <D>(menuItemId: MenuItemId, callback: PreloadEventListener<D>) => {
+    return preloadEvents.subscribeMenuItemProcessedEvent<D>(menuItemId, callback);
   },
 });

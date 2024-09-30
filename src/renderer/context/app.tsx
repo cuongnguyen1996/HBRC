@@ -6,6 +6,7 @@ import { ApplicationAPI, ApplicationInfo } from '@shared/types';
 import QueryKeys from '@renderer/constants/queryKeys';
 import { useQuery } from '@tanstack/react-query';
 import { PreloadEventKey } from '@shared/event/preload';
+import { MenuItemId } from '@shared/constants';
 
 type AppContextType = {
   messageApi: MessageInstance;
@@ -51,10 +52,18 @@ export default function AppContextProvider({ children }) {
     const transporterStatusSubId = application.subscribeEvent(PreloadEventKey.TRANSPORTER_STATUS_CHANGED, () => {
       refetch();
     });
+    const onStartAllInstancesSubId = application.onMenuItemProcessed(MenuItemId.START_ALL_INSTANCES, () => {
+      messageApi.success('All instances started');
+    });
+    const onStopAllInstancesSubId = application.onMenuItemProcessed(MenuItemId.STOP_ALL_INSTANCES, () => {
+      messageApi.success('All instances stopped');
+    });
     return () => {
       application.unsubscribeEvent(apReadySubId);
       application.unsubscribeEvent(serverDisSubId);
       application.unsubscribeEvent(transporterStatusSubId);
+      application.unsubscribeEvent(onStartAllInstancesSubId);
+      application.unsubscribeEvent(onStopAllInstancesSubId);
     };
   }, []);
 

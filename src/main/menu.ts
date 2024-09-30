@@ -1,7 +1,7 @@
 import { App, BrowserWindow, Menu } from 'electron';
 import { DebugWindow } from './windows/Debug';
 import { PLATFORM } from '@shared/constants/main';
-import { MenuItemId, ON_MENU_ITEM_CLICKED } from '@shared/constants';
+import { MenuItemId, ON_MENU_ITEM_CLICKED, ON_MENU_ITEM_PROCESSED } from '@shared/constants';
 import Application from './app';
 
 export const initMenu = (app: App) => {
@@ -25,6 +25,10 @@ export const initMenu = (app: App) => {
 export const initMenuForMainWindow = (app: App, mainApp: Application, mainWindow: BrowserWindow) => {
   const sendMenuClickedToRenderer = (menuItemId: string, data?: any) => {
     mainWindow.webContents.send(ON_MENU_ITEM_CLICKED, menuItemId, data);
+  };
+
+  const sendMenuProcessedToRenderer = (menuItemId: string, data?: any) => {
+    mainWindow.webContents.send(ON_MENU_ITEM_PROCESSED, menuItemId, data);
   };
 
   addMenuItems(
@@ -63,6 +67,24 @@ export const initMenuForMainWindow = (app: App, mainApp: Application, mainWindow
             label: 'Add Instance',
             click: () => {
               sendMenuClickedToRenderer(MenuItemId.ADD_INSTANCE);
+            },
+          },
+          {
+            id: MenuItemId.START_ALL_INSTANCES,
+            label: 'Start all instances',
+            click: async () => {
+              sendMenuClickedToRenderer(MenuItemId.START_ALL_INSTANCES);
+              await mainApp.getInstanceManager().startAllInstances();
+              sendMenuProcessedToRenderer(MenuItemId.START_ALL_INSTANCES);
+            },
+          },
+          {
+            id: MenuItemId.STOP_ALL_INSTANCES,
+            label: 'Stop all instances',
+            click: async () => {
+              sendMenuClickedToRenderer(MenuItemId.STOP_ALL_INSTANCES);
+              await mainApp.getInstanceManager().stopAllInstances();
+              sendMenuProcessedToRenderer(MenuItemId.STOP_ALL_INSTANCES);
             },
           },
         ],

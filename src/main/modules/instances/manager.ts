@@ -35,7 +35,6 @@ class BrowserInstanceManager {
         this.instanceStatusMap.set(sessionId, updated.status);
       }
     });
-    // await this.loadInstanceWindowPages();
     this.messageQueues.ttc.onMessage(this.processTransportMessage.bind(this));
     await this.messageQueues.ttc.start();
   }
@@ -102,6 +101,20 @@ class BrowserInstanceManager {
       throw new Error(`Instance not found: ${sessionId}`);
     }
     await this.loadInstanceWindowPage(instance);
+  }
+
+  async startAllInstances() {
+    const instances = await this.getInstances();
+    for (const instance of instances) {
+      await this.loadInstanceWindowPage(instance);
+    }
+  }
+
+  async stopAllInstances() {
+    const instances = await this.getInstances();
+    for (const instance of instances) {
+      await this.stopInstance(instance.sessionId);
+    }
   }
 
   private emitInstanceUpdatedEvent(sessionId: string, updated: Partial<BrowserInstance>) {
@@ -184,13 +197,6 @@ class BrowserInstanceManager {
     await controller.init();
     this.emitInstanceUpdatedEvent(bi.sessionId, { status: 'Running' });
     return controller;
-  }
-
-  private async loadInstanceWindowPages() {
-    const instances = await this.getInstances();
-    for (const instance of instances) {
-      await this.loadInstanceWindowPage(instance);
-    }
   }
 
   private saveInstance(bi: BrowserInstance) {

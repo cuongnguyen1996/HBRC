@@ -168,6 +168,10 @@ export class Application {
       return MainWindow(this);
     });
     this.mainWindow = mainWindow;
+    this.initEventListeners();
+  }
+
+  private initEventListeners() {
     this.events.onClientReady.listen(() => {
       this.sendMainWindowEvent(ON_APPLICATION_READY);
     });

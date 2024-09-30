@@ -8,10 +8,12 @@ export class PreloadEvents {
   private eventMap: Map<string, Event<any>>;
 
   menuItemClickedEventMap: Map<string, Event<any>>;
+  menuItemProcessedEventMap: Map<string, Event<any>>;
 
   constructor() {
     this.eventMap = new Map();
     this.menuItemClickedEventMap = new Map();
+    this.menuItemProcessedEventMap = new Map();
     this.subscriptionIdMap = new Map();
     this.subscriptionId = 0;
   }
@@ -19,6 +21,24 @@ export class PreloadEvents {
   private nextSubscriptionId() {
     return ++this.subscriptionId;
   }
+
+  subscribeMenuItemProcessedEvent<D>(menuItemId: string, listener: PreloadEventListener<D>) {
+    if (!this.menuItemProcessedEventMap.has(menuItemId)) {
+      this.menuItemProcessedEventMap.set(menuItemId, new Event<D>());
+    }
+    const sub = this.menuItemProcessedEventMap.get(menuItemId).listen(listener);
+    const subId = this.nextSubscriptionId();
+    this.subscriptionIdMap.set(subId, sub);
+    return subId;
+  }
+
+  emitMenuItemProcessedEvent(menuItemId: string, data?: any) {
+    const event = this.menuItemProcessedEventMap.get(menuItemId);
+    if (event) {
+      event.emit(data);
+    }
+  }
+
   subscribeMenuItemClickEvent<D>(menuItemId: string, listener: PreloadEventListener<D>) {
     if (!this.menuItemClickedEventMap.has(menuItemId)) {
       this.menuItemClickedEventMap.set(menuItemId, new Event<D>());
